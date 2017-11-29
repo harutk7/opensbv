@@ -106,6 +106,7 @@ public:
 private:
     char *m_dev_name; ///< Device to open
     bool m_running = false; ///< Capture running or not
+    bool m_hasError = false; ///< Capture has error or not
     buffer  *m_buffers; ///< Capture frame buffer
     enum io_method  m_io; ///< Input out method
     enum capture_format m_cap_format; ///< Capture format

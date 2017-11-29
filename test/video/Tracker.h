@@ -104,7 +104,7 @@ private:
     trackerWorkerStruct m_trackerParams; ///< Tracker worker thread params;
     buffer_image m_rgbimage; ///< Decompress image struct
     cv::TrackerKCF::Params m_parameters; ///< KCF parameters
-    bool m_display = false; ///< Display window or not
+    bool m_display = true; ///< Display window or not
     bool m_capCv = false; ///< Capture with opencv or not
     int trackCounter = 0; ///< Counter which frames to track
     int trackCounterTerm = 2; ///< Which frames to detect

@@ -22,17 +22,19 @@ CameraUVC::~CameraUVC() {
 
 bool CameraUVC::StartCapture() {
 
-    // open device
     prepare_capture();
 
-    return true;
+    // open devicef
+    while(this->m_hasError) {
 
-    while (!prepare_capture() && m_running) {
-        switch_device();
+        std::cout << "restarting video capture" << std::endl;
 
-//        stop_capturing();
-//        close_device();
+        StopCapture();
+
+        prepare_capture();
     }
+
+    return true;
 }
 
 bool CameraUVC::StopCapture() {
@@ -84,6 +86,7 @@ bool CameraUVC::prepare_capture() {
     std::cout << "video capture started" << std::endl;
 
     m_running = true;
+    m_hasError = false;
 
     pthread_mutex_unlock(&this->m_main_mutex);
 
@@ -102,11 +105,8 @@ void CameraUVC::switch_device() {
 void CameraUVC::errno_exit(const char *s) {
     m_numErrors++;
 
-    if (m_numErrors > 10) {
-
-        // handle failure thread
-        m_failureHandle.m_inst  = (CameraUVC *)this;
-        pthread_create(&this->m_failtureHandleThread,NULL,&CameraUVC::handleFailures,&m_failureHandle);
+    if (m_numErrors > 5) {
+        this->m_hasError = true;
     }
     fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno));
 //    exit(EXIT_FAILURE);
@@ -237,8 +237,13 @@ bool CameraUVC::mainloop(void) {
         pthread_mutex_lock(&this->m_main_mutex);
         if (!this->m_running) {
             pthread_mutex_unlock(&this->m_main_mutex);
-            break;
+            return false;
         }
+        if (this->m_hasError) {
+            pthread_mutex_unlock(&this->m_main_mutex);
+            return false;
+        }
+
         FD_ZERO(&fds);
         FD_SET(this->m_fd, &fds);
 

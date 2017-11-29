@@ -50,6 +50,6 @@ set(AUDIO_TEST_FILES
 set(GENERAL_TEST_FILES
         general/main.cpp)
 
-add_executable(opensbv_test ${SOURCE_FILES} ${AUDIO_TEST_FILES})
+add_executable(opensbv_test ${SOURCE_FILES} ${VIDEO_TEST_FILES})
 
 target_link_libraries(opensbv_test ${OpenCV_LIBS} ${Other_LIBS} ${OpenAL_LIBS})
