@@ -51,7 +51,7 @@ void StreamerUDP::SetStreamDataType(enum stream_data_type dataType) {
     m_streamDataType = dataType;
 }
 
-void StreamerUDP::Write(unsigned char *data, ssize_t size) {
+size_t StreamerUDP::Write(unsigned char *data, ssize_t size) {
     try {
         pthread_mutex_lock(&m_mutex_stream); // lock
         if (!m_isStreamReady)
@@ -77,6 +77,8 @@ void StreamerUDP::Write(unsigned char *data, ssize_t size) {
     } catch (...) {
         std::cerr << "error in Write" << std:: endl;
     }
+
+    return m_imageBuffer.buffersize;
 }
 
 void *StreamerUDP::streamerWorker(void *ptr) {

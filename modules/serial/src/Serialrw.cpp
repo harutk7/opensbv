@@ -23,11 +23,19 @@ SerialRW::~SerialRW() {
 }
 
 ssize_t SerialRW::Write(string data) {
-    return m_serial->write(data); // write
+    if (m_serial != nullptr)
+        return m_serial->write(data); // write
+
+    cerr << "serial is not inited" << std::endl;
+    return 0;
 }
 
 string SerialRW::Read(size_t size) {
-    return m_serial->read(size);
+    if (m_serial != nullptr)
+        return m_serial->read(size);
+
+    cerr << "serial is not inited" << std::endl;
+    return "";
 }
 
 void SerialRW::SetBoundRate(uint32_t rate) {

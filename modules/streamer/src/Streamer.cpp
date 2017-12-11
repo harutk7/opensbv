@@ -15,15 +15,15 @@ Streamer::~Streamer() {
 
 }
 
-void Streamer::Write(unsigned char *data, ssize_t size = 0) {
+size_t Streamer::Write(unsigned char *data, ssize_t size = 0) {
     if (m_stream_type == STREAM_MJPG){
-        m_streamerMJPG.Write(data,size); // call mjpeg write
+        return m_streamerMJPG.Write(data,size); // call mjpeg write
     } else if (m_stream_type == STREAM_RTSP) {
-        m_streamerRTSP.Write(data,size);
+        return m_streamerRTSP.Write(data,size);
     } else if (m_stream_type == STREAM_UDP) {
-        m_streamerUDP.Write(data,size);
+        return m_streamerUDP.Write(data,size);
     } else if (m_stream_type == STREAM_MRTSP) {
-        m_streamerMRTSP.Write(data,size);
+        return m_streamerMRTSP.Write(data,size);
     }
 }
 

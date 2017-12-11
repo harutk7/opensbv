@@ -30,7 +30,7 @@ bool StreamerBase::Run() {
 
 }
 
-void StreamerBase::Write(unsigned char *data, ssize_t size) {
+size_t StreamerBase::Write(unsigned char *data, ssize_t size) {
 
 }
 

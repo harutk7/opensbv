@@ -66,8 +66,9 @@ public:
      * This function must be overrided by inherited class
      * @param data
      * @param size
+     * @return
      */
-    virtual void Write(unsigned char *data, ssize_t size);
+    virtual size_t Write(unsigned char *data, ssize_t size);
 
     /// Stop Streaming
     virtual bool Stop();

@@ -127,9 +127,9 @@ private:
     void operator=(const Socket &sock);
 
 protected:
-    int sockDesc;              // Socket descriptor
-    Socket(int type, int protocol) throw(SocketException);
-    Socket(int sockDesc);
+    int sockDesc;              /// Socket descriptor
+    Socket(int type, int protocol) throw(SocketException); /// Socket error handler
+    Socket(int sockDesc); /// Socket
 };
 
 /**
@@ -181,8 +181,8 @@ public:
     unsigned short getForeignPort() throw(SocketException);
 
 protected:
-    CommunicatingSocket(int type, int protocol) throw(SocketException);
-    CommunicatingSocket(int newConnSD);
+    CommunicatingSocket(int type, int protocol) throw(SocketException); /// Communicating Socket
+    CommunicatingSocket(int newConnSD); /// Communicating socket
 };
 
 /**

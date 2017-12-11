@@ -54,7 +54,7 @@ struct buffer {
 
 /// Handle Filaure thread struct
 struct failureHandlestruct {
-    CameraUVC *m_inst;
+    CameraUVC *m_inst; /// pointer to CameraUVC
 };
 
 /// UVC Camera class
@@ -118,8 +118,6 @@ private:
     std::mutex m_mtx; ///< mutex for reading frame and stoping it
     pthread_mutex_t m_main_mutex = PTHREAD_MUTEX_INITIALIZER; ///< Main Mutex
     int m_numErrors; ///< number of errors
-    pthread_t m_failtureHandleThread;
-    failureHandlestruct m_failureHandle{};
 
     void errno_exit(const char *s); ///< Error handling
     int xioctl(int fh, int request, void *arg); ///< Apply camera params
@@ -138,7 +136,7 @@ private:
     bool prepare_capture(); ///< Prepare capture
     void switch_device(); ///< Switch camera device
 
-    unsigned short m_dev_num = 0;
+    unsigned short m_dev_num = 0; /// current device num
     std::vector<std::string> m_dev_list {
             "/dev/video0",
             "/dev/video1",
@@ -153,7 +151,7 @@ private:
             "/dev/video10",
             "/dev/video11",
             "/dev/video12",
-    };
+    }; /// for switching between devices
 };
 
 

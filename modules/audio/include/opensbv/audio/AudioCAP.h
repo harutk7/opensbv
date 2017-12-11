@@ -37,7 +37,7 @@ public:
     /// Return list of devices
     std::vector<std::string> GetDeviceList();
 
-    // Set Device to Capture
+    /// Set Device to Capture
     void SetDevice(std::string device);
 
     /// is capture running
@@ -52,26 +52,26 @@ public:
     /// Set Max Release Size
     void SetMaxReleaseSize(ushort size);
 private:
-    size_t               m_bufferSize;
-    const ALCchar     *m_devices;
-    const ALCchar     *m_ptr;
-    std::string             m_currentDevice;
-    ALCdevice         *m_mainDev;
-    ALCcontext        *m_mainContext;
-    ALCdevice         *m_captureDev;
-    ALint             m_samplesAvailable;
-    time_t            m_currentTime;
-    time_t            m_lastTime;
-    ALuint            m_buffer;
-    ALuint            m_source;
-    ALint             m_playState;
-    unsigned char     *m_data_tmp_ptr;
-    unsigned char     *m_data_buffer;
-    ushort            m_data_buffer_size;
-    bool              m_running = false;
-    int               m_sampleRate = 22050;
-    int               m_releaseSize = 200;
-    pthread_mutex_t   m_audioMutex = PTHREAD_MUTEX_INITIALIZER;
+    size_t               m_bufferSize; /// buffer size
+    const ALCchar     *m_devices; /// speaker devices
+    const ALCchar     *m_ptr; /// speaker device pointer
+    std::string             m_currentDevice; /// current capture device
+    ALCdevice         *m_mainDev; /// main device to capture
+    ALCcontext        *m_mainContext; /// main content
+    ALCdevice         *m_captureDev; /// capture device
+    ALint             m_samplesAvailable; /// samples available for capture
+    time_t            m_currentTime; /// current Time (for test purposes)
+    time_t            m_lastTime; /// last time (for test purposes)
+    ALuint            m_buffer; /// buffer of samples (for test)
+    ALuint            m_source; /// source (for test)
+    ALint             m_playState; /// current playing state (for test)
+    unsigned char     *m_data_tmp_ptr; /// pointer to captured data buffer
+    unsigned char     *m_data_buffer; /// captured data buffer
+    ushort            m_data_buffer_size; /// capture data size
+    bool              m_running = false; /// capturing or not
+    int               m_sampleRate = 22050; /// samples rate
+    int               m_releaseSize = 200; /// sample release size
+    pthread_mutex_t   m_audioMutex = PTHREAD_MUTEX_INITIALIZER; /// mutex for capture device
 
 };
 

@@ -80,7 +80,7 @@ void *StreamerMRTSP::listenWorker(void *ptr) {
     pthread_t listenCommandT[65535];
     int newSockFd; // new client socket fd
     streamerMRTSPListenCommandWorkerStruct clientCommandParams;
-
+    clientCommandParams.worker_join_mutex = PTHREAD_MUTEX_INITIALIZER;
     clilen = sizeof(cli_addr);
 
     // accept connection from client
@@ -98,6 +98,8 @@ void *StreamerMRTSP::listenWorker(void *ptr) {
 
             int maxpkt = 10;
             setsockopt(newSockFd, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(int));
+
+            pthread_mutex_lock(&clientCommandParams.worker_join_mutex);
 
             // apply socket fd params
             streamerMRTSPClientStruct currentClient;
@@ -125,31 +127,33 @@ void *StreamerMRTSP::listenWorker(void *ptr) {
 }
 
 void *StreamerMRTSP::listenCommandWorker(void *ptr) {
-    try {
-        streamerMRTSPListenCommandWorkerStruct params = *(streamerMRTSPListenCommandWorkerStruct *)ptr; // params
-        char receiveBuffer[MRTSP_TCP_BUFFER_SIZE] = {0}; // receive buffer
-        unsigned short udpPort = MRTSP_UDP_PORT;
-        char buffer[1024] = {0}; // buffer for headers
-        std::string receivedData; // receive data string
-        std::vector<std::string> receivedDataVector;
-        bool skip;
+    streamerMRTSPListenCommandWorkerStruct params = *(streamerMRTSPListenCommandWorkerStruct *)ptr; // params
 
-        fd_set read_sd;
-        FD_ZERO(&read_sd);
-        FD_SET(params.currentClient.sockFd, &read_sd);
+    pthread_mutex_unlock(&((streamerMRTSPListenCommandWorkerStruct *)ptr)->worker_join_mutex);
+    char receiveBuffer[MRTSP_TCP_BUFFER_SIZE] = {0}; // receive buffer
+    unsigned short udpPort = MRTSP_UDP_PORT;
+    char buffer[1024] = {0}; // buffer for headers
+    std::string receivedData; // receive data string
+    std::vector<std::string> receivedDataVector;
+    bool skip;
 
-        while (true) {
-            fd_set rsd = read_sd;
+    fd_set read_sd;
+    FD_ZERO(&read_sd);
+    FD_SET(params.currentClient.sockFd, &read_sd);
 
-            int sel = select(params.currentClient.sockFd + 1, &rsd, 0, 0, 0);
+    while (true) {
+        fd_set rsd = read_sd;
 
-            if (sel > 0) {
-                skip = false;
-                // client has performed some activity (sent data or disconnected?)
+        int sel = select(params.currentClient.sockFd + 1, &rsd, 0, 0, 0);
 
-                ssize_t bytes = recv(params.currentClient.sockFd,receiveBuffer, MRTSP_TCP_BUFFER_SIZE, 0);
+        if (sel > 0) {
+            skip = false;
+            // client has performed some activity (sent data or disconnected?)
 
-                if (bytes > 0) {
+            ssize_t bytes = recv(params.currentClient.sockFd,receiveBuffer, MRTSP_TCP_BUFFER_SIZE, 0);
+
+            if (bytes > 0) {
+                try {
                     // got data from the client.
                     receivedData.assign(receiveBuffer); // assign to string
 
@@ -177,10 +181,13 @@ void *StreamerMRTSP::listenCommandWorker(void *ptr) {
                             pthread_mutex_unlock(params.mutex_client);
                         }
                     }
+                } catch (...) {
+                    std::cerr << "ERROR: StreamerMRTSP::listenCommandWorker() 1" << std::endl;
                 }
-                else if (bytes == 0) {
-                    pthread_mutex_lock(params.mutex_client);
-
+            }
+            else if (bytes == 0) {
+                pthread_mutex_lock(params.mutex_client);
+                try {
                     for( auto iter = params.clientList->begin(); iter != params.clientList->end(); ++iter )
                     {
                         if( iter->sockFd == params.currentClient.sockFd )
@@ -189,25 +196,24 @@ void *StreamerMRTSP::listenCommandWorker(void *ptr) {
                             break;
                         }
                     }
-
-                    pthread_mutex_unlock(params.mutex_client);
-                    break;
+                } catch (...) {
+                    std::cerr << "ERROR: StreamerMRTSP::listenCommandWorker() 2" << std::endl;
                 }
-                else {
-                    // error receiving data from client. You may want to break from
-                    // while-loop here as well.
-                }
-            }
-            else if (sel < 0) {
-                // grave error occurred.
+                pthread_mutex_unlock(params.mutex_client);
                 break;
             }
+            else {
+                // error receiving data from client. You may want to break from
+                // while-loop here as well.
+            }
         }
-
-        close(params.currentClient.sockFd);
-    } catch (...) {
-        std::cerr << "error in listenCommandWorker" << std::endl;
+        else if (sel < 0) {
+            // grave error occurred.
+            break;
+        }
     }
+
+    close(params.currentClient.sockFd);
 }
 
 bool StreamerMRTSP::Stop() {
@@ -233,7 +239,7 @@ void StreamerMRTSP::SetStreamDataType(enum stream_data_type dataType) {
     m_streamDataType = dataType;
 }
 
-void StreamerMRTSP::Write(unsigned char *data, ssize_t size) {
+size_t StreamerMRTSP::Write(unsigned char *data, ssize_t size) {
     try {
         pthread_mutex_lock(&m_mutex_stream); // lock
         if (!m_isStreamReady)
@@ -259,131 +265,131 @@ void StreamerMRTSP::Write(unsigned char *data, ssize_t size) {
     } catch (...) {
         std::cerr << "error in Write" << std:: endl;
     }
+
+    return m_imageBuffer.buffersize;
 }
 
 void *StreamerMRTSP::streamerWorker(void *ptr) {
-    try {
-        // parameters struct
-        streamerMRTSPWorkerStruct params = *(streamerMRTSPWorkerStruct *)ptr;
-        long oldTimestamp = 0; // timestamp to compare with
-        int total_pack; // num of packs to send
-        std::vector<unsigned char> encoded;
-        unsigned long oldSize = 0;
-        unsigned char *imageBuf;
-        unsigned char *currentBuf;
+    // parameters struct
+    streamerMRTSPWorkerStruct params = *(streamerMRTSPWorkerStruct *)ptr;
+    long oldTimestamp = 0; // timestamp to compare with
+    int total_pack; // num of packs to send
+    std::vector<unsigned char> encoded;
+    unsigned long oldSize = 0;
+    unsigned char *imageBuf;
+    unsigned char *currentBuf;
 
-        int i = 0;
-        // send with sleep for corresponding fps
-        while (*(params.m_running)) {
-            try {
-                encoded.clear();
+    int i = 0;
+    // send with sleep for corresponding fps
+    while (*(params.m_running)) {
+        try {
+            encoded.clear();
 
-                pthread_mutex_lock(params.mutex_stream); // lock
-                // check if is stream ready for start
-                if (*(params.isStreamReady) && (oldTimestamp != *(params.data->timestamp) || oldTimestamp != 0)) {
-                    // update timestamp
-                    oldTimestamp = *(params.data->timestamp);
+            pthread_mutex_lock(params.mutex_stream); // lock
+            // check if is stream ready for start
+            if (*(params.isStreamReady) && (oldTimestamp != *(params.data->timestamp) || oldTimestamp != 0)) {
+                // update timestamp
+                oldTimestamp = *(params.data->timestamp);
 
-                    // insert header
-                    encoded.insert(encoded.begin(),UDP_PKG_HEADER,UDP_PKG_HEADER+strlen(UDP_PKG_HEADER));
+                // insert header
+                encoded.insert(encoded.begin(),UDP_PKG_HEADER,UDP_PKG_HEADER+strlen(UDP_PKG_HEADER));
 
-                    // insert main image
-                    std::copy(params.data->buffer->begin(), params.data->buffer->end(), std::back_inserter(encoded));
+                // insert main image
+                std::copy(params.data->buffer->begin(), params.data->buffer->end(), std::back_inserter(encoded));
 
-                    // insert footer
-                    encoded.insert(encoded.end(),UDP_PKG_FOOTER,UDP_PKG_FOOTER+strlen(UDP_PKG_FOOTER));
+                // insert footer
+                encoded.insert(encoded.end(),UDP_PKG_FOOTER,UDP_PKG_FOOTER+strlen(UDP_PKG_FOOTER));
 
-                    // packs to send
-                    total_pack = (int)(1 + (encoded.size()) / UDP_PACK_SIZE);
+                // packs to send
+                total_pack = (int)(1 + (encoded.size()) / UDP_PACK_SIZE);
 
-                    // check if not same frame
-                    if (true) {
-                        oldSize = encoded.size();
+                // check if not same frame
+                if (true) {
+                    oldSize = encoded.size();
 
-                        imageBuf = (unsigned char *) malloc (encoded.size() * sizeof(unsigned char));
-                        std::memcpy( imageBuf, encoded.data(), encoded.size() );
+                    imageBuf = (unsigned char *) malloc (encoded.size() * sizeof(unsigned char));
+                    std::memcpy( imageBuf, encoded.data(), encoded.size() );
 
-                        for (int i = 0; i < total_pack; i++) {
+                    for (int i = 0; i < total_pack; i++) {
 
-                            //--------------------
-                            if (i == total_pack - 1) {
-                                currentBuf = (unsigned char *) malloc ((encoded.size() - (i * UDP_PACK_SIZE))*sizeof(unsigned char));
-                                std::memcpy( currentBuf, imageBuf + (i * UDP_PACK_SIZE), encoded.size() - (i* UDP_PACK_SIZE));
+                        //--------------------
+                        if (i == total_pack - 1) {
+                            currentBuf = (unsigned char *) malloc ((encoded.size() - (i * UDP_PACK_SIZE))*sizeof(unsigned char));
+                            std::memcpy( currentBuf, imageBuf + (i * UDP_PACK_SIZE), encoded.size() - (i* UDP_PACK_SIZE));
 
-                            } else {
-                                currentBuf = (unsigned char *) malloc (UDP_PACK_SIZE);
-                                std::memcpy( currentBuf, imageBuf + (i * UDP_PACK_SIZE), UDP_PACK_SIZE);
-                            }
+                        } else {
+                            currentBuf = (unsigned char *) malloc (UDP_PACK_SIZE);
+                            std::memcpy( currentBuf, imageBuf + (i * UDP_PACK_SIZE), UDP_PACK_SIZE);
+                        }
 
 //                        std::copy(buf + (i * UDP_PACK_SIZE), buf + (i * (2*UDP_PACK_SIZE)), currentBuf);
-                            /*    string name;
-                                int foundHeader = -1, foundFooter = -1;
+                        /*    string name;
+                            int foundHeader = -1, foundFooter = -1;
 
-                                char * pch;
-                                pch = strstr ((char *)currentBuf,(char *)UDP_PKG_HEADER);
-                                if (pch)
-                                    foundHeader = 1;
+                            char * pch;
+                            pch = strstr ((char *)currentBuf,(char *)UDP_PKG_HEADER);
+                            if (pch)
+                                foundHeader = 1;
 
-        //                        if (i == total_pack - 1) {
-        //                            int a = 1;
-        //                        }
-                                char * pch1;
-                                pch1 = strstr ((char *)currentBuf,(char *)UDP_PKG_FOOTER);
-                                if (pch1)
-                                    foundFooter = 1;
+    //                        if (i == total_pack - 1) {
+    //                            int a = 1;
+    //                        }
+                            char * pch1;
+                            pch1 = strstr ((char *)currentBuf,(char *)UDP_PKG_FOOTER);
+                            if (pch1)
+                                foundFooter = 1;
 
-                                name = "buffer_" + std::to_string(*(params.data->timestamp)) + "_" + std::to_string(i+1) + "_" +  std::to_string(encoded.size()) + "_(" + std::to_string(foundHeader) + ")" + "(" + std::to_string(foundFooter) + ").txt";
+                            name = "buffer_" + std::to_string(*(params.data->timestamp)) + "_" + std::to_string(i+1) + "_" +  std::to_string(encoded.size()) + "_(" + std::to_string(foundHeader) + ")" + "(" + std::to_string(foundFooter) + ").txt";
 
-                                std::ofstream outfile ((char *)name.c_str(),std::ofstream::binary);
+                            std::ofstream outfile ((char *)name.c_str(),std::ofstream::binary);
+                            if (i == total_pack - 1) {
+                                outfile.write ((char *)currentBuf,encoded.size() - (i* UDP_PACK_SIZE));
+                            } else {
+                                outfile.write ((char *)currentBuf,UDP_PACK_SIZE);
+                            }
+                            outfile.close(); */
+
+                        //---------------------
+
+                        pthread_mutex_lock(params.mutex_client); // unlock
+                        for (int j = 0; j < params.clientList->size(); j++) {
+                            if ((*(params.clientList))[j].ready) {
                                 if (i == total_pack - 1) {
-                                    outfile.write ((char *)currentBuf,encoded.size() - (i* UDP_PACK_SIZE));
-                                } else {
-                                    outfile.write ((char *)currentBuf,UDP_PACK_SIZE);
-                                }
-                                outfile.close(); */
-
-                            //---------------------
-
-                            pthread_mutex_lock(params.mutex_client); // unlock
-                            for (int j = 0; j < params.clientList->size(); j++) {
-                                if ((*(params.clientList))[j].ready) {
-                                    if (i == total_pack - 1) {
-                                        if (sendto((*(params.clientList))[j].udpClient.sockFd, currentBuf, encoded.size() - (i* UDP_PACK_SIZE), MSG_NOSIGNAL,
-                                                   (struct sockaddr *)&(*(params.clientList))[j].udpClient.their_addr, sizeof ((*(params.clientList))[j].udpClient.their_addr)) < 0) {
-                                        }
-//                            params.sock->sendTo( currentBuf, encoded.size() - (i* UDP_PACK_SIZE), params.serverAddress, params.serverPort);
-                                    } else {
-                                        if (sendto((*(params.clientList))[j].udpClient.sockFd, currentBuf, UDP_PACK_SIZE, MSG_NOSIGNAL,
-                                                   (struct sockaddr *)&(*(params.clientList))[j].udpClient.their_addr, sizeof ((*(params.clientList))[j].udpClient.their_addr)) < 0) {
-                                        };
-//                            params.sock->sendTo( currentBuf, UDP_PACK_SIZE, params.serverAddress, params.serverPort);
+                                    if (sendto((*(params.clientList))[j].udpClient.sockFd, currentBuf, encoded.size() - (i* UDP_PACK_SIZE), MSG_NOSIGNAL,
+                                               (struct sockaddr *)&(*(params.clientList))[j].udpClient.their_addr, sizeof ((*(params.clientList))[j].udpClient.their_addr)) < 0) {
                                     }
+//                            params.sock->sendTo( currentBuf, encoded.size() - (i* UDP_PACK_SIZE), params.serverAddress, params.serverPort);
+                                } else {
+                                    if (sendto((*(params.clientList))[j].udpClient.sockFd, currentBuf, UDP_PACK_SIZE, MSG_NOSIGNAL,
+                                               (struct sockaddr *)&(*(params.clientList))[j].udpClient.their_addr, sizeof ((*(params.clientList))[j].udpClient.their_addr)) < 0) {
+                                    };
+//                            params.sock->sendTo( currentBuf, UDP_PACK_SIZE, params.serverAddress, params.serverPort);
                                 }
                             }
-                            pthread_mutex_unlock(params.mutex_client); // unlock
-
-                            free(currentBuf);
                         }
-                        free(imageBuf);
+                        pthread_mutex_unlock(params.mutex_client); // unlock
+
+                        free(currentBuf);
                     }
+                    free(imageBuf);
                 }
-
-                pthread_mutex_unlock(params.mutex_stream); // unlock
-
-                usleep(UDP_STREAM_WAIT_INTERVAL); // sleep for 1 ms
-            } catch(...) {
-                std::cerr << "exception on streamWorker loop" << std::endl;
-                continue;
             }
-        }
 
+            pthread_mutex_unlock(params.mutex_stream); // unlock
+
+            usleep(UDP_STREAM_WAIT_INTERVAL); // sleep for 1 ms
+        } catch(...) {
+            std::cerr << "exception on streamWorker loop" << std::endl;
+            continue;
+        }
+    }
+
+    try {
         // close clients
         for (int j = 0; j < params.clientList->size(); j++) {
             close((*(params.clientList))[j].sockFd);
         }
     } catch (...) {
-        std::cerr << "error in streamWorker main" << std::endl;
+        std::cerr << "ERROR: erase client from streamworker()" << std::endl;
     }
-
-
 }

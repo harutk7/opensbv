@@ -69,8 +69,9 @@ public:
      * Converts to Jpeg and Streams
      * @param data to stream
      * @param size
+     * @return
      */
-    void Write(unsigned char *data, ssize_t size); // write to stream
+    size_t Write(unsigned char *data, ssize_t size); // write to stream
 
     /// Set Streaming Type
     /**

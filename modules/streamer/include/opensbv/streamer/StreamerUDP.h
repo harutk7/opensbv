@@ -64,8 +64,9 @@ public:
      * write data to stream buffer
      * @param data to stream
      * @param size
+     * @return
      */
-    void Write(unsigned char *data, ssize_t size); // write to stream
+    size_t Write(unsigned char *data, ssize_t size); // write to stream
 
 private:
     bool m_isStreamReady; ///< Is stream ready or not

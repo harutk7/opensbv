@@ -77,7 +77,7 @@ bool StreamerMJPG::BindTCP() {
 }
 
 // Write with Mat and encode
-void StreamerMJPG::Write(unsigned char *data, ssize_t size) {
+size_t StreamerMJPG::Write(unsigned char *data, ssize_t size) {
 
     pthread_mutex_lock(&m_mutex_client); // lock
 
@@ -98,6 +98,8 @@ void StreamerMJPG::Write(unsigned char *data, ssize_t size) {
         free(m_imageBuffer.buffer);
 
     pthread_mutex_unlock(&m_mutex_client); // unlock
+
+    return m_imageBuffer.buffersize;
 }
 
 // Listen for clients to connect

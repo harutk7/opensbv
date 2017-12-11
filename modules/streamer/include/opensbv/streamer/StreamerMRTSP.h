@@ -73,6 +73,7 @@ struct streamerMRTSPListenCommandWorkerStruct {
     pthread_mutex_t *mutex_client; ///< Mutex for sending frames
     streamerMRTSPClientStruct currentClient; ///< current client
     std::vector<streamerMRTSPClientStruct> *clientList; ///< client list reference
+    pthread_mutex_t worker_join_mutex;
 };
 
 /// MRTSP Streaming class
@@ -89,8 +90,9 @@ public:
      * write data to stream buffer
      * @param data to stream
      * @param size
+     * @return
      */
-    void Write(unsigned char *data, ssize_t size); // write to stream
+    size_t Write(unsigned char *data, ssize_t size); // write to stream
 
     /// Run the MRTSP Server
     bool Run(); // run mrtsp server

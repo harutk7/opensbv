@@ -32,7 +32,7 @@ typedef unsigned short ushort;
 
 /// Compress Data Type
 enum h264_data_type {
-    YUYV,
+    YUYV,dox
 };
 
 /// Image color type
@@ -41,11 +41,12 @@ enum imageColorType{
     IMAGE_COLOR_GRAYSCALE
 };
 
+/// Jpeg error manager
 struct jpegErrorManager {
     /* "public" fields */
-    struct jpeg_error_mgr pub;
+    struct jpeg_error_mgr pub; /// jpeg error msg struct
     /* for return to caller */
-    jmp_buf setjmp_buffer;
+    jmp_buf setjmp_buffer; /// jmp buffer
 };
 
 /// Image buffer struct for decode and encode
@@ -90,14 +91,19 @@ public:
      * @param jpeg
      * @param jpegsize
      * @param image
+     * @param outSourceType
      * @return
      */
-    static bool decompress_jpeg(unsigned char *jpeg, int jpegsize, buffer_image *image, enum imageColorType outSourceType);
+    static bool decompress_jpeg(unsigned char *jpeg,
+                                int jpegsize,
+                                buffer_image *image,
+                                enum imageColorType outSourceType);
 
     /// Compress JPEG Image
     /**
      * Compress JPEG image using libjpeg-turbo
      * @param data
+     * @param sourceType
      * @param image
      * @param width
      * @param height
