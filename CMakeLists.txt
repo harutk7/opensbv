@@ -4,10 +4,11 @@ project(opensbv)
 set(PROJECT_NAME opensbv)
 set(CMAKE_CXX_STANDARD 11)
 
-option(WITH_H/ELPERS "WITH_HELPERS" TRUE)
-if (WITH_HELPERS)
-    include_directories(helpers/include)
-    add_subdirectory(helpers)
-endif(WITH_HELPERS)
-add_subdirectory(modules)
-#add_subdirectory(test)
+set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+#CALL CMAKE SCRIPTS
+include(CombineParts)
+
+if (WITH_TEST)
+    add_subdirectory(test)
+endif(WITH_TEST)

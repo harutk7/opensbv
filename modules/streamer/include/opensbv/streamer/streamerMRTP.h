@@ -1,0 +1,140 @@
+//
+// Created by harut on 8/2/17.
+//
+
+#ifndef PB_MAIN_STREAMER_H
+#define PB_MAIN_STREAMER_H
+
+#include <vector>
+#include <list>
+#include <cstddef>
+
+#include "opensbv/streamer/streamerBase.h"
+
+#include <boost/asio.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/thread.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
+#define STREAM_FPS (5000)
+
+using boost::asio::ip::udp;
+
+using boost::asio::ip::tcp;
+
+namespace opensbv {
+    namespace streamer {
+
+
+        class ChunkSplitter {
+
+            std::list<std::vector<unsigned char>> mList;
+
+            const size_t mChunkSize = 60000;
+
+        public:
+            ChunkSplitter();
+            ~ChunkSplitter();
+
+            void split(unsigned char *buf, size_t n, unsigned long timeStamp);
+
+            bool hasNext();
+
+            std::vector<unsigned char> getNext();
+
+            void deleteNext();
+        };
+
+        /// mrtspStreamParams
+        struct streamMRTPParams {
+            unsigned short port;
+            std::string address;
+        };
+
+
+        /// cmd actions
+        enum cmd_action {
+            CMD_ACTION_STREAM_PLAY
+        };
+
+        /// cmd parser
+        class CmdParser {
+            cmd_action m_action;
+
+            unsigned short m_port;
+
+        public:
+            CmdParser();
+
+            void parse(std::string data, size_t n);
+
+            unsigned short getPort();
+
+            cmd_action getAction();
+        };
+
+        class UdpClient {
+
+            ChunkSplitter mChunkSplitter;
+            StreamBuffer mLocalBuffer;
+
+            StreamBuffer* m_buffer;
+            std::string m_address;
+            unsigned short m_port;
+
+        public:
+            UdpClient(StreamBuffer *buffer, std::string address, unsigned short port);
+
+            ~UdpClient();
+
+            void run();
+            void stop();
+
+        };
+
+
+        /// StreamerMRTP class
+        /**
+         * StreamerMRTP frame to network class
+         */
+        class StreamerMRTP: public StreamerBase {
+
+            boost::thread mStreamThread; ///< streaming thread
+
+            unsigned short m_port;
+
+            void server(boost::asio::io_service &io_service, unsigned short port);
+
+        public:
+            /**
+             * Streamer constructor
+             */
+            StreamerMRTP();
+            ~StreamerMRTP(); ///< Destructor
+
+            /// Write frame to stremaing
+            /**
+             * Converts to Jpeg and Streams
+             * @param data to stream
+             * @param size
+             * @return
+             */
+            size_t Write(unsigned char *data, ssize_t size); // write to stream
+
+            /// Run Streaming
+            void Run();
+
+            /// Stop Streaming
+            void Stop();
+
+            static void session(tcp::socket sock, CmdParser cmdParser, StreamBuffer *buffer);
+
+            static void streamWorker(StreamBuffer *buffer, streamMRTPParams params);
+
+        };
+    }
+}
+
+#endif //PB_MAIN_STREAMER_H

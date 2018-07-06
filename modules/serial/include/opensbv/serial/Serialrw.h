@@ -12,30 +12,36 @@
 using namespace std;
 using namespace serial;
 
-/// Serial Read Write class
-/**
- * Read and Write to serial port
- */
-class SerialRW {
-public:
-    SerialRW(string read, string write, uint32_t baundRate); ///< Constructor
-    ~SerialRW(); ///< Destructor
+namespace opensbv {
+    namespace serial {
 
-    /// Write data to serial
-    ssize_t Write(string data);
+        /// Serial Read Write class
+        /**
+         * Read and Write to serial port
+         */
+        class SerialRW {
+        public:
+            SerialRW(char *read, char *write, uint32_t baundRate); ///< Constructor
+            ~SerialRW(); ///< Destructor
 
-    /// Read from serial
-    string Read(size_t size);
+            /// Write data to serial
+            ssize_t Write(string data);
 
-    /// Set bound rate
-    void SetBoundRate(uint32_t rate);
+            /// Read from serial
+            string Read(size_t size);
 
-private:
-    string read; ///< Read fd
-    string write; ///< Write fd
-    Serial *m_serial; ///< Serial lib pointer
-    uint32_t m_baundRate; ///< Baudrate
+            /// Set bound rate
+            void SetBoundRate(uint32_t rate);
 
-};
+        private:
+            char* read; ///< Read fd
+            char * write; ///< Write fd
+            Serial *m_serial; ///< Serial lib pointer
+            uint32_t m_baundRate; ///< Baudrate
+
+        };
+
+    }
+}
 
 #endif //PB_MAIN_SERIALRW_H

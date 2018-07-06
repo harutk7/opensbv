@@ -5,11 +5,12 @@ set(PROJECT_NAME opensbv)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(
-        ./include)
+        include/opensbv/camera/CameraUVC.h
+)
 
 set(SOURCE_FILES
         src/CameraUVC.cpp
-        include/opensbv/camera/CameraUVC.h)
+        )
 
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/libs)
 

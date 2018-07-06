@@ -8,7 +8,7 @@
 #define NUM_BUFFERS 6
 
 #include "opensbv/audio/AudioCAP.h"
-#include "opensbv/streamer/Streamer.h"
+#include "opensbv/streamer/streamerMRTP.h"
 void *playerWorker(void* ptr);
 struct audioParams {
     ALuint *m_source;

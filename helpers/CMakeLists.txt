@@ -4,27 +4,13 @@ project(opensbv)
 set(PROJECT_NAME opensbv)
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_HELPERS
-        src/general/GeneralHelper.cpp
-        src/images/ImageHelper.cpp
-        include/opensbv/helpers/general/GeneralHelper.h
-        include/opensbv/helpers/images/ImageHelper.h)
+option(WITH_HELPERS_GENERAL "WITH_HELPERS_GENERAL" TRUE)
+option(WITH_HELPERS_IMAGE "WITH_HELPERS_IMAGE" TRUE)
 
-set(FFMPEG_LIBS avutil avcodec swscale)
+if (WITH_HELPERS_GENERAL)
+    add_subdirectory(general)
+endif(WITH_HELPERS_GENERAL)
 
-include_directories(
-        ./include)
-
-SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/libs)
-
-# LIBRARIES
-
-add_library(opensbv_helpers SHARED ${SOURCE_HELPERS} )
-
-target_link_libraries(opensbv_helpers jpeg pthread)
-
-install(TARGETS opensbv_helpers DESTINATION lib)
-
-install(DIRECTORY ./include/
-        DESTINATION include
-        FILES_MATCHING PATTERN "*.h*")
+if (WITH_HELPERS_IMAGE)
+    add_subdirectory(image)
+endif(WITH_HELPERS_IMAGE)

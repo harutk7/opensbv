@@ -4,45 +4,19 @@ project(opensbv)
 set(PROJECT_NAME opensbv)
 set(CMAKE_CXX_STANDARD 11)
 
-SET(OpenCV_LIBS opencv_core opencv_videoio opencv_imgproc opencv_highgui opencv_imgcodecs opencv_tracking)
+find_package(OpenCV)
 
-SET(OpenAL_LIBS openal)
-
-SET(Other_LIBS jpeg serial pthread)
-
-include_directories(
-        ~/Libraries/serial/include
-        ../helpers/include
-        ../modules/camera/include
-        ../modules/streamer/include
-        ../modules/serial/include
-        ../modules/audio/include
-)
-
-set(SOURCE_FILES
-        ../helpers/src/images/ImageHelper.cpp
-        ../helpers/src/general/GeneralHelper.cpp
-        ../modules/camera/src/CameraUVC.cpp
-        ../modules/audio/src/AudioCAP.cpp
-        ../modules/serial/src/Serialrw.cpp
-        ../modules/streamer/src/PracticalSocket.cpp
-        ../modules/streamer/src/StreamerMJPG.cpp
-        ../modules/streamer/src/StreamerRTSP.cpp
-        ../modules/streamer/src/StreamerUDP.cpp
-        ../modules/streamer/src/StreamerBase.cpp
-        ../modules/streamer/src/StreamerMRTSP.cpp
-        ../modules/streamer/src/Streamer.cpp
-        )
+SET(Native_LIBS ${CMAKE_BINARY_DIR}/libs/libopensbv_camera.so ${CMAKE_BINARY_DIR}/libs/libopensbv_helpers_image.so ${CMAKE_BINARY_DIR}/libs/libopensbv_helpers_general.so ${CMAKE_BINARY_DIR}/libs/libopensbv_streamer.so)
 
 set(VIDEO_TEST_FILES
-        video/Commands.h
-        video/Commands.cpp
-        video/Config.cpp
-        video/Config.h
+        video/capture.h
+        video/capture.cpp
         video/main.cpp
-        video/Opencv.h
-        video/Tracker.h
-        video/Tracker.cpp)
+        )
+
+set(STREAM_TEST_FILES
+        stream/main.cpp
+        )
 
 set(AUDIO_TEST_FILES
         audio/main.cpp audio/AudioTest.cpp audio/AudioTest.h)
@@ -50,6 +24,11 @@ set(AUDIO_TEST_FILES
 set(GENERAL_TEST_FILES
         general/main.cpp)
 
-add_executable(opensbv_test ${SOURCE_FILES} ${VIDEO_TEST_FILES})
+set(SERIAL_TEST_FILES
+        serial/main.cpp)
 
-target_link_libraries(opensbv_test ${OpenCV_LIBS} ${Other_LIBS} ${OpenAL_LIBS})
+add_executable(opensbv_test ${VIDEO_TEST_FILES})
+
+SET(JPEG_TURBO_LIB libturbojpeg.so)
+
+target_link_libraries(opensbv_test ${OpenCV_LIBS} ${Native_LIBS} ${JPEG_TURBO_LIB} boost_system boost_thread pthread)
