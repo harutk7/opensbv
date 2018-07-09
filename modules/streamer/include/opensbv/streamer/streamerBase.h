@@ -7,6 +7,9 @@
 
 #include <iostream>
 #include "opensbv/streamer/streamBuffer.h"
+#include "opensbv/helpers/image/ImageHelper.h"
+
+using namespace opensbv::helpers::image;
 
 namespace opensbv {
     namespace streamer {
@@ -15,10 +18,23 @@ namespace opensbv {
         class StreamerBase {
 
         protected:
+            unsigned short mQuality;
+
+            unsigned short mWitdh;
+            unsigned short mHeight;
+
+            imageColorType mImageColorType;
+
             bool m_streamingRunning = false; ///< Streaming running or not
             StreamBuffer mBuffer;
 
         public:
+
+            /**
+             * constructor
+             */
+            StreamerBase();
+
             /// Write frame to stremaing
             /**
              * Converts to Jpeg and Streams
@@ -33,6 +49,13 @@ namespace opensbv {
 
             /// Stop Streaming
             virtual void Stop() = 0;
+
+            void setQuality(unsigned short quality);
+
+            void setWidth(unsigned short width);
+            void setHeight(unsigned short height);
+
+            void setColorType(imageColorType type);
         };
     }
 }

@@ -51,7 +51,7 @@ namespace opensbv {
                 return *this;
             }
 
-            unsigned char* getDate();
+            unsigned char* getData();
 
             unsigned long getLength();
         };

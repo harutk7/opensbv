@@ -34,7 +34,7 @@ namespace opensbv {
                 static std::vector<std::string> explode(std::string const & s, char delim);
 
                 /// Get current timestamp
-                static long GetTimestamp();
+                static unsigned long GetTimestamp();
 
                 /// Get current datetime
                 static std::string GetDateTime();

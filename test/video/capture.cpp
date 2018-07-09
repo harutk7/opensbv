@@ -16,13 +16,14 @@ Capture::Capture(string camera) : CameraUVC((char *)camera.c_str(), FRAME_WIDTH,
 
     this->m_frame_yuyv = cv::Mat(FRAME_HEIGHT, FRAME_WIDTH, CV_8UC2);
 
-    m_imageBuffer.buffersize = 0;
-    m_imageBuffer.buffer = nullptr;
-
     fs["camera_matrix"] >> camera_matrix;
     fs["distortion_coefficients"] >> distortion;
 
-    mMRtpStreamer = new StreamerMRTP();
+    mMRtpStreamer = new StreamerMRTP(8554);
+    mMRtpStreamer->setQuality(90);
+    mMRtpStreamer->setWidth(FRAME_WIDTH);
+    mMRtpStreamer->setHeight(FRAME_HEIGHT);
+    mMRtpStreamer->setColorType(IMAGE_COLOR_BGR);
     mStreamer.setStreamer(mMRtpStreamer);
 
     mStreamer.run();
@@ -84,27 +85,12 @@ void Capture::OnFrameReady(const void *p, int size) {
 
         cv::remap(m_frame, undistort_img, map1, map2, cv::INTER_LINEAR, cv::BORDER_CONSTANT);
 
-
-        if (ImageHelper::compress_jpg_turbo(this->undistort_img.data, IMAGE_COLOR_BGR, &m_imageBuffer, FRAME_WIDTH, FRAME_HEIGHT, 90)){
-
-//            std::vector<unsigned char> vec;
-//            std::copy(m_imageBuffer.buffer+0, m_imageBuffer.buffer+m_imageBuffer.buffersize, std::back_inserter(vec));
-//            m_frame = cv::imdecode(cv::Mat(vec), 1);
-
-            mMRtpStreamer->Write(m_imageBuffer.buffer, m_imageBuffer.buffersize);
-
-        }
-
+        mMRtpStreamer->Write(undistort_img.data, undistort_img.total() * undistort_img.elemSize());
 
         if (this->m_display) {
             cv::imshow("m_frame", this->m_frame); // show frame in nameWindow
             cv::waitKey(1);
         }
-
-        if (m_imageBuffer.buffersize != 0)
-            tjFree(m_imageBuffer.buffer);
-        m_imageBuffer.buffersize = 0;
-        m_imageBuffer.buffer = nullptr;
 
         if (m_cap_format == CAP_MJPG && m_rgbimage.buffer != nullptr)
             free(m_rgbimage.buffer);        // free the buffer

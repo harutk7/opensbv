@@ -10,6 +10,8 @@
 #include <cstddef>
 
 #include "opensbv/streamer/streamerBase.h"
+#include "opensbv/helpers/image/ImageHelper.h"
+#include "opensbv/helpers/general/GeneralHelper.h"
 
 #include <boost/asio.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -23,6 +25,9 @@
 using boost::asio::ip::udp;
 
 using boost::asio::ip::tcp;
+
+using namespace opensbv::helpers::image;
+using namespace opensbv::helpers::general;
 
 namespace opensbv {
     namespace streamer {
@@ -105,13 +110,15 @@ namespace opensbv {
 
             unsigned short m_port;
 
+            buffer_image m_imageBuffer;
+
             void server(boost::asio::io_service &io_service, unsigned short port);
 
         public:
             /**
              * Streamer constructor
              */
-            StreamerMRTP();
+            StreamerMRTP(unsigned short port = 8554);
             ~StreamerMRTP(); ///< Destructor
 
             /// Write frame to stremaing

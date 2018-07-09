@@ -28,7 +28,7 @@ namespace opensbv {
                 return result;
             }
 
-            long GeneralHelper::GetTimestamp() {
+            unsigned long GeneralHelper::GetTimestamp() {
 
                 return duration_cast< milliseconds >(
                         system_clock::now().time_since_epoch()

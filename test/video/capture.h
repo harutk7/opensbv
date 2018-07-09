@@ -55,8 +55,6 @@ private:
     double fps;
     // fps counter end
 
-    buffer_image m_imageBuffer;
-
     cv::FileStorage fs;
 
     cv::Mat undistort_img, camera_matrix, distortion;

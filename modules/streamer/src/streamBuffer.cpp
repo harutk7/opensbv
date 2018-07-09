@@ -31,7 +31,7 @@ namespace opensbv {
             return mTimestamp;
         }
 
-        unsigned char* StreamBuffer::getDate() {
+        unsigned char* StreamBuffer::getData() {
             return mData;
         }
 

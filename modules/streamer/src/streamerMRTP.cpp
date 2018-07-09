@@ -7,13 +7,16 @@
 namespace opensbv {
     namespace streamer {
 
-        StreamerMRTP::StreamerMRTP() {
-
-            m_port = 8554;
+        StreamerMRTP::StreamerMRTP(unsigned short port): m_port(port) {
+            m_imageBuffer.buffersize = 0;
+            m_imageBuffer.buffer = nullptr;
         }
 
         StreamerMRTP::~StreamerMRTP() {
-
+            if (m_imageBuffer.buffersize != 0)
+                tjFree(m_imageBuffer.buffer);
+            m_imageBuffer.buffersize = 0;
+            m_imageBuffer.buffer = nullptr;
         }
 
         void StreamerMRTP::Run() {
@@ -35,7 +38,14 @@ namespace opensbv {
 
         size_t StreamerMRTP::Write(unsigned char *data, ssize_t size) {
 
-            std::cout << size << std::endl;
+            if (m_imageBuffer.buffersize != 0)
+                tjFree(m_imageBuffer.buffer);
+            m_imageBuffer.buffersize = 0;
+            m_imageBuffer.buffer = nullptr;
+
+            if (ImageHelper::compress_jpg_turbo(data, mImageColorType, &m_imageBuffer, mWitdh, mHeight, mQuality)) {
+                mBuffer.assign(m_imageBuffer.buffer+ 0, m_imageBuffer.buffersize, GeneralHelper::GetTimestamp());
+            }
         }
 
         void StreamerMRTP::server(boost::asio::io_service& io_service, unsigned short port)
@@ -166,7 +176,7 @@ namespace opensbv {
 
                 mLocalBuffer = *m_buffer;
 
-                mChunkSplitter.split(mLocalBuffer.getDate(), mLocalBuffer.getLength(), mLocalBuffer.getTimestamp());
+                mChunkSplitter.split(mLocalBuffer.getData(), mLocalBuffer.getLength(), mLocalBuffer.getTimestamp());
 
                 size_t full_size = 0;
 
