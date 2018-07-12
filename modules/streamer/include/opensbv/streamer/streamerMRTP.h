@@ -8,6 +8,7 @@
 #include <vector>
 #include <list>
 #include <cstddef>
+#include <thread>
 
 #include "opensbv/streamer/streamerBase.h"
 #include "opensbv/helpers/image/ImageHelper.h"
