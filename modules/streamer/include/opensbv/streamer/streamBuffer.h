@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <mutex>
+#include <pthread.h>
 
 namespace opensbv {
     namespace streamer {
@@ -15,7 +16,8 @@ namespace opensbv {
             unsigned char* mData = nullptr;
             size_t mLength = 0;
             unsigned long mTimestamp = 0;
-            mutable std::mutex mtx;
+
+            mutable pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
         public:
 
@@ -34,11 +36,13 @@ namespace opensbv {
                     return *this;
                 // reuse storage when possible
 
-                other.mtx.lock();
+                pthread_mutex_lock(&other.mutex);
 
                 try {
-                    delete this->mData;
+                    if (mLength != 0)
+                        delete this->mData;
                     this->mData = new unsigned char[other.mLength];
+
                     std::copy(other.mData + 0, other.mData + other.mLength, mData + 0);
                     mLength = other.mLength;
                     mTimestamp = other.mTimestamp;
@@ -46,7 +50,7 @@ namespace opensbv {
 
                 }
 
-                other.mtx.unlock();
+                pthread_mutex_unlock(&other.mutex);
 
                 return *this;
             }

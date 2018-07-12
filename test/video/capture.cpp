@@ -104,12 +104,12 @@ void Capture::OnFrameReady(const void *p, int size) {
             char buffer[30];
             sprintf (buffer, "%.2f", fps);
 //            printf("%.2f\n", fps);
-            cout << "\r" <<fps << " fps\n" << flush;
+//            cout << "\r" <<fps << " fps\n" << flush;
 //            fflush(stdout);
             //cv::putText(m_frame, buffer, cvPoint(50,50),
             //      cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200,200,250), 1, CV_AA);
         }
-        printf("%.2f", fps);
+//        printf("%.2f", fps);
         // overflow protection
         if (counter == (INT_MAX - 1000))
             counter = 0;

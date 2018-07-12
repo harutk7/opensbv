@@ -18,13 +18,17 @@ namespace opensbv {
 
         void StreamBuffer::assign(unsigned char *Data, size_t Length, unsigned long Timestamp) {
 
-            mtx.lock();
+            pthread_mutex_lock(&mutex);
 
-            mData = Data;
+            if (mLength != 0) {
+                delete mData;
+            }
+            mData = new unsigned char[Length];
+            std::copy(Data + 0, Data + Length, mData + 0);
             mLength = Length;
             mTimestamp = Timestamp;
 
-            mtx.unlock();
+            pthread_mutex_unlock(&mutex);
         }
 
         unsigned long StreamBuffer::getTimestamp() {
