@@ -15,7 +15,6 @@ namespace opensbv {
             this->m_cap_format = CAP_MJPG;
             this->m_width = width;
             this->m_height = height;
-
         }
 
         CameraUVC::~CameraUVC() {
