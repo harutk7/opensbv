@@ -38,13 +38,11 @@ namespace opensbv {
 
         size_t StreamerMRTP::Write(unsigned char *data, ssize_t size) {
 
-            if (m_imageBuffer.buffersize != 0)
-                tjFree(m_imageBuffer.buffer);
-            m_imageBuffer.buffersize = 0;
-            m_imageBuffer.buffer = nullptr;
-
             if (ImageHelper::compress_jpg_turbo(data, mImageColorType, &m_imageBuffer, mWitdh, mHeight, mQuality)) {
                 mBuffer.assign(m_imageBuffer.buffer+ 0, m_imageBuffer.buffersize, GeneralHelper::GetTimestamp());
+                tjFree(m_imageBuffer.buffer);
+                m_imageBuffer.buffersize = 0;
+                m_imageBuffer.buffer = nullptr;
             }
         }
 

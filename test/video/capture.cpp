@@ -5,8 +5,7 @@
 #include "capture.h"
 
 // Constructor and call super Constructor
-Capture::Capture(string camera) : CameraUVC((char *)camera.c_str(), FRAME_WIDTH, FRAME_HEIGHT),
-                                  fs("/data/out_camera_data.xml", cv::FileStorage::READ)
+Capture::Capture(string camera) : CameraUVC((char *)camera.c_str(), FRAME_WIDTH, FRAME_HEIGHT), fs("/data/out_camera_data.xml", cv::FileStorage::READ)
 {
 
     // set capture method on CameraUVC
@@ -27,7 +26,6 @@ Capture::Capture(string camera) : CameraUVC((char *)camera.c_str(), FRAME_WIDTH,
     mStreamer.setStreamer(mMRtpStreamer);
 
     mStreamer.run();
-
 }
 
 // Destructor

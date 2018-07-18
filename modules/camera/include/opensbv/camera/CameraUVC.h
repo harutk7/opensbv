@@ -83,7 +83,7 @@ namespace opensbv {
             /**
                This function is called when frame is ready
              */
-            virtual void OnFrameReady(const void *p, int size); // process image
+            virtual void OnFrameReady(const void *p, int size) = 0; // process image
 
             /// Set Capture method
             /**
