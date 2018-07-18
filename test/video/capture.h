@@ -20,8 +20,8 @@ using namespace opensbv::helpers::image;
 using namespace opensbv::streamer;
 using namespace opensbv::camera;
 
-#define FRAME_WIDTH (1280)
-#define FRAME_HEIGHT (720)
+#define FRAME_WIDTH (1920)
+#define FRAME_HEIGHT (1080)
 #define TRACK_WAIT_INTERVAL (5000)
 
 /// Tracking Object class
@@ -41,8 +41,8 @@ private:
     cv::Mat m_frame; ///< Frames from VideoCapture and CopyTo
     cv::Mat m_frame_yuyv; ///< YUYV Mat object
     buffer_image m_rgbimage; ///< Decompress image struct
-    bool m_display = false; ///< Display window or not
-    enum capture_format m_cap_format = CAP_YUYV; ///< Capture format
+    bool m_display = true; ///< Display window or not
+    enum capture_format m_cap_format = CAP_MJPG; ///< Capture format
     unsigned char *m_grayData; ///< Graysacle data
 
     StreamerMRTP *mMRtpStreamer = nullptr;
@@ -71,7 +71,7 @@ private:
      * @param p
      * @param size
      */
-    void OnFrameReady(const void *p, int size);
+    void OnFrameReady(const void *p, unsigned long size);
 };
 
 

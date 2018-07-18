@@ -16,6 +16,9 @@ typedef unsigned char JSAMPLE;
 #include <syslog.h>
 #include <iostream>
 #include <stdexcept>
+#include <exception>
+
+#include "opensbv/helpers/general/GeneralHelper.h"
 
 /*extern "C" {
     #include <libavcodec/avcodec.h>
@@ -37,13 +40,20 @@ namespace opensbv {
 
         namespace image {
 
+        class ImageHelperException: public general::GeneralException {
+        public:
+            explicit ImageHelperException(const char *fName, const char* msg): GeneralException("ImageHelper", fName, msg) {
+
+            }
+        };
+
 /// Compress Data Type
             enum h264_data_type {
                 YUYV,dox
             };
 
 /// Image color type
-            enum imageColorType{
+            enum imageColorType {
                 IMAGE_COLOR_BGR,
                 IMAGE_COLOR_GRAYSCALE
             };
@@ -60,7 +70,7 @@ namespace opensbv {
             struct buffer_image {
                 int height; ///< height of image
                 int width; ///< width of image
-                unsigned char *buffer; ///< image buffer
+                unsigned char *buffer = nullptr; ///< image buffer
                 unsigned long buffersize; ///< image buffer size
 
             };
@@ -92,46 +102,29 @@ namespace opensbv {
                  */
                 static void BGR2Grayscale(const unsigned char *buffer, size_t size, unsigned char *ret);
 
-                /// Decompress JPEG Image
-                /**
-                 * Decompress JPEG image using libjpeg-turbo
-                 * @param jpeg
-                 * @param jpegsize
-                 * @param image
-                 * @param outSourceType
-                 * @return
-                 */
 
-                static bool decompress_jpeg(unsigned char *jpeg,
-                                            int jpegsize,
-                                            buffer_image *image,
-                                            enum imageColorType outSourceType);
-
-                /// Compress JPEG Image
-                /**
-                 * Compress JPEG image using libjpeg-turbo
-                 * @param data
-                 * @param sourceType
-                 * @param image
-                 * @param width
-                 * @param height
-                 * @param quality
-                 * @return
-                 */
-                static bool compress_jpg(unsigned char *data,
-                                         enum imageColorType sourceType,
-                                         buffer_image *image,
-                                         unsigned int width,
-                                         unsigned int height,
-                                         unsigned short quality);
-
-
-                static bool compress_jpg_turbo(unsigned char *data,
+                static void compress_jpg_turbo(unsigned char *data,
                                                enum imageColorType sourceType,
                                                buffer_image *image,
                                                unsigned int width,
                                                unsigned int height,
                                                unsigned short quality);
+
+                /**
+                 * decompress mjpeg with turbo jpeg
+                 * @param data
+                 * @param jpegSize
+                 * @param sourceType
+                 * @param image
+                 * @param width
+                 * @param height
+                 */
+                static void decompress_jpg_turbo(unsigned char *data,
+                                                       unsigned long jpegSize,
+                                                       enum imageColorType sourceType,
+                                                       buffer_image *image,
+                                                       int width,
+                                                       int height);
 
                 /// Compress H264 Image
                 /**
@@ -164,26 +157,6 @@ namespace opensbv {
 //    static bool decompress_h264(buffer_image *m_bufferImage, unsigned char *input_data, long input_size);
 
             private:
-                /// Jpeg init source
-                static void jpeg_init_src(j_decompress_ptr cinfo, int *jpegdata, int jpegsize);
-
-                /// Init source
-                static void init_source(j_decompress_ptr cinfo);
-
-                /// Fill input buffer
-                static int fill_input_buffer(j_decompress_ptr cinfo);
-
-                /// Skip input data
-                static void skip_input_data(j_decompress_ptr cinfo, long num_bytes);
-
-                /// Terminate source
-                static void term_source(j_decompress_ptr cinfo);
-
-                /// Error exit
-                static void my_error_exit(j_common_ptr cinfo);
-
-                /// Error exit output message
-                static void my_error_output_message(j_common_ptr cinfo);
 
                 /// Encode H264
                 /**

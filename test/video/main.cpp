@@ -6,6 +6,6 @@
 
 int main(int argc, char* argv[]) {
 
-    Capture cap("/dev/video0");
+    Capture cap("/dev/video2");
     cap.Run();
 }

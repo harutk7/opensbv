@@ -57,190 +57,7 @@ namespace opensbv {
 
             }
 
-            bool ImageHelper::decompress_jpeg(unsigned char *jpeg, int jpegsize, buffer_image *image,
-                                              enum imageColorType outSourceType) {
-                try {
-                    struct jpeg_decompress_struct cinfo;
-                    JSAMPROW rowptr[1];
-                    int out_num_bytes = 3;
-
-                    /* create an error handler that does not terminate MJPEG-streamer */
-                    jpegErrorManager jerr;
-                    cinfo.err = jpeg_std_error(&jerr.pub);
-                    jerr.pub.error_exit = ImageHelper::my_error_exit;
-                    jerr.pub.output_message = ImageHelper::my_error_output_message;
-
-                    if (setjmp(jerr.setjmp_buffer)) {
-                        /* If we get here, the JPEG code has signaled an error. */
-                        //            std::cerr << jpegLastErrorMsg << std::endl;
-                        std::cerr << "JPEG Data corrupted" << std::endl;
-                        //            jpeg_destroy_decompress(&cinfo);
-                        return false;
-                    }
-
-                    try {
-                        /* create the decompressor structures */
-                        jpeg_create_decompress(&cinfo);
-
-                        /* initalize the structures of decompressor */
-                        ImageHelper::jpeg_init_src(&cinfo, (int *)jpeg, jpegsize);
-
-                        /* read the JPEG header data */
-                        if(jpeg_read_header(&cinfo, TRUE) < 0) {
-                            jpeg_destroy_decompress(&cinfo);
-                            return false;
-                        }
-                    }
-                    catch ( std::runtime_error & e ) {
-                        //            jpeg_destroy_decompress( &cinfo );
-                        return false;
-                        //            throw; // or return an error code
-                    }
-
-                    /*
-                     * I just expect RGB colored JPEGs, so the num_components must be three
-                     */
-                    cinfo.num_components = 3;
-
-                    if (outSourceType == IMAGE_COLOR_BGR)
-                        out_num_bytes = 3;
-                    else if (outSourceType == IMAGE_COLOR_GRAYSCALE)
-                        out_num_bytes = 1;
-
-                    /* just use RGB output and adjust decompression parameters */
-                    if (outSourceType == IMAGE_COLOR_BGR)
-                        cinfo.out_color_space = JCS_EXT_BGR;
-                    else if (outSourceType == IMAGE_COLOR_GRAYSCALE)
-                        cinfo.out_color_space = JCS_GRAYSCALE;
-                    cinfo.quantize_colors = FALSE;
-
-                    /* to scale the decompressed image, the fraction could be changed here */
-                    //    cinfo.scale_num   = 1;
-                    //    cinfo.scale_denom = 1;
-                    cinfo.dct_method = JDCT_FASTEST;
-                    cinfo.do_fancy_upsampling = FALSE;
-
-                    jpeg_calc_output_dimensions(&cinfo);
-
-                    /* store the image information */
-                    image->width = cinfo.output_width;
-                    image->height = cinfo.output_height;
-
-                    /*
-                     * just allocate a new buffer if not already allocated
-                     * pay a lot attention, that the calling function has to ensure, that the buffer
-                     * must be large enough
-                     */
-
-                    image->buffersize = image->width * image->height * out_num_bytes;
-                    image->buffer = (unsigned char *)malloc(image->buffersize);
-                    if(image->buffer == NULL) {
-                        jpeg_destroy_decompress(&cinfo);
-                        return false;
-                    }
-
-                    /* start to decompress */
-                    if(jpeg_start_decompress(&cinfo) < 0) {
-                        jpeg_destroy_decompress(&cinfo);
-                        return false;
-                    }
-
-                    while(cinfo.output_scanline < cinfo.output_height) {
-                        rowptr[0] = (JSAMPROW)(int *)image->buffer + cinfo.output_scanline * image->width * out_num_bytes;
-
-                        if(jpeg_read_scanlines(&cinfo, rowptr, (JDIMENSION) 1) < 0) {
-                            jpeg_destroy_decompress(&cinfo);
-                            return false;
-                        }
-                    }
-
-                    if(jpeg_finish_decompress(&cinfo) < 0) {
-                        jpeg_destroy_decompress(&cinfo);
-                        return false;
-                    }
-
-                    /* all is done */
-                    jpeg_destroy_decompress(&cinfo);
-
-                    return true;
-                } catch (...) {
-                    return false;
-                }
-            }
-
-            bool ImageHelper::compress_jpg(unsigned char *data,
-                                           enum imageColorType sourceType,
-                                           buffer_image *image,
-                                           unsigned int width,
-                                           unsigned int height,
-                                           unsigned short quality) {
-                try {
-                    jpeg_compress_struct cinfo{};
-                    jpeg_error_mgr err{};
-                    cinfo.err = jpeg_std_error(&err);
-                    jpeg_create_compress(&cinfo);
-
-                    cinfo.image_width = width; // constants defined somewhere
-                    cinfo.image_height = height;
-                    if (sourceType == IMAGE_COLOR_BGR) {
-                        cinfo.input_components = 3;
-                        cinfo.in_color_space = JCS_EXT_BGR;
-                    } else {
-                        cinfo.input_components = 1;
-                        cinfo.in_color_space = JCS_GRAYSCALE;
-                    }
-
-                    /* to scale the decompressed image, the fraction could be changed here */
-                    //        cinfo.scale_num   = 1;
-                    //        cinfo.scale_denom = 1;
-                    cinfo.dct_method = JDCT_FASTEST;
-
-                    // what's wrong with this?
-                    unsigned char* buf = NULL;
-                    unsigned long buf_sz = 0;
-
-                    image->buffersize = cinfo.image_width * cinfo.image_height * cinfo.input_components;
-                    image->buffer = (unsigned char *)malloc(image->buffersize);
-
-                    jpeg_mem_dest(&cinfo, &image->buffer, &image->buffersize);
-
-                    jpeg_set_defaults(&cinfo);
-                    jpeg_set_quality(&cinfo, quality, true);
-
-                    jpeg_start_compress(&cinfo, true);
-
-                    int row_stride = width * cinfo.input_components;	/* JSAMPLEs per row in image_buffer */
-
-                    JSAMPROW row_pointer[1];
-
-                    while (cinfo.next_scanline < cinfo.image_height) {
-                        /* jpeg_write_scanlines expects an array of pointers to scanlines.
-                         * Here the array is only one element long, but you could pass
-                         * more than one scanline at a time if that's more convenient.
-                         */
-                        row_pointer[0] = & data[cinfo.next_scanline * row_stride];
-                        (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-                    }
-
-                    /* Step 6: Finish compression */
-
-                    jpeg_finish_compress(&cinfo);
-
-                    /* Step 7: release JPEG compression object */
-
-                    /* This is an important step since it will release a good deal of memory. */
-                    jpeg_destroy_compress(&cinfo);
-
-                    // ...
-                    // in reality, return the compressed data
-                    return true;
-                } catch (...) {
-                    return false;
-                }
-            }
-
-
-            bool ImageHelper::compress_jpg_turbo(unsigned char *data,
+            void ImageHelper::compress_jpg_turbo(unsigned char *data,
                                                  enum imageColorType sourceType,
                                                  buffer_image *image,
                                                  unsigned int width,
@@ -259,91 +76,48 @@ namespace opensbv {
                     //or by the Compress/Decompress) after you are done working on it:
                     //        tjFree(image->buffer);
 
-                    return true;
+                } catch (std::exception &e) {
+                    tjFree(image->buffer);
+                    throw ImageHelperException("compress_jpg_turbo()", e.what());
                 } catch (...) {
-                    return false;
+                    tjFree(image->buffer);
+                    throw ImageHelperException("compress_jpg_turbo()", "undefined exception");
                 }
             }
 
-            void ImageHelper::jpeg_init_src(j_decompress_ptr cinfo, int *jpegdata, int jpegsize) {
-                my_source_mgr *src;
+            void ImageHelper::decompress_jpg_turbo(unsigned char *data,
+                                                 unsigned long jpegSize,
+                                                 enum imageColorType sourceType,
+                                                 buffer_image *image,
+                                                 int width,
+                                                int height) {
+                try {
+                    int jpegSubsamp;
 
-                if(cinfo->src == NULL) {  /* first time for this JPEG object? */
-                    cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
-                    src = (my_source_mgr *) cinfo->src;
-                }
+                    int size = 1;
+                    if (sourceType == IMAGE_COLOR_BGR)
+                        size = 3;
 
-                src = (my_source_mgr *) cinfo->src;
-                src->pub.init_source = ImageHelper::init_source;
-                src->pub.fill_input_buffer = ImageHelper::fill_input_buffer;
-                src->pub.skip_input_data = ImageHelper::skip_input_data;
-                src->pub.resync_to_restart = jpeg_resync_to_restart;
-                src->pub.term_source = ImageHelper::term_source;
-                src->pub.bytes_in_buffer = 0; /* forces fill_input_buffer on first read */
-                src->pub.next_input_byte = NULL; /* until buffer loaded */
+                    delete image->buffer;
 
-                src->jpegdata = jpegdata;
-                src->jpegsize = jpegsize;
-            }
+                    image->buffer = new unsigned char[width*height*size];
 
-            void ImageHelper::init_source(j_decompress_ptr cinfo) {
-                return;
-            }
+                    tjhandle _jpegDecompressor = tjInitDecompress();
 
-            int ImageHelper::fill_input_buffer(j_decompress_ptr cinfo) {
-                my_source_mgr * src = (my_source_mgr *) cinfo->src;
+                    tjDecompressHeader2(_jpegDecompressor, data, jpegSize, &width, &height, &jpegSubsamp);
 
-                src->pub.next_input_byte = (JOCTET *)src->jpegdata;
-                src->pub.bytes_in_buffer = src->jpegsize;
+                    tjDecompress2(_jpegDecompressor, data, jpegSize, image->buffer, width, 0/*pitch*/, height, TJPF_BGR, TJFLAG_FASTDCT);
 
-                return TRUE;
-            }
+                    tjDestroy(_jpegDecompressor);
 
-            void ImageHelper::skip_input_data(j_decompress_ptr cinfo, long num_bytes) {
-                my_source_mgr * src = (my_source_mgr *) cinfo->src;
-
-                if(num_bytes > 0) {
-                    src->pub.next_input_byte += (size_t) num_bytes;
-                    src->pub.bytes_in_buffer -= (size_t) num_bytes;
+                } catch (std::exception &e) {
+                    delete image->buffer;
+                    throw ImageHelperException("decompress_jpg_turbo()", e.what());
+                } catch (...) {
+                    delete image->buffer;
+                    throw ImageHelperException("decompress_jpg_turbo()", "undefined exception");
                 }
             }
-
-            void ImageHelper::term_source(j_decompress_ptr cinfo) {
-                return;
-            }
-
-            void ImageHelper::my_error_exit(j_common_ptr cinfo) {
-                std::cerr << "JPEG data contains an error\n";
-
-                jpegErrorManager* myerr = (jpegErrorManager*) cinfo->err;
-                /* note : *(cinfo->err) is now equivalent to myerr->pub */
-
-                /* output_message is a method to print an error message */
-                /*(* (cinfo->err->output_message) ) (cinfo);*/
-
-                /* Create the message */
-                //    ( *(cinfo->err->format_message) ) (cinfo, jpegLastErrorMsg);
-                //    ( *(cinfo->err->format_message) ) (cinfo, "Jpeg Data error");
-
-                /* Jump to the setjmp point */
-                longjmp(myerr->setjmp_buffer, 1);
-            }
-
-            void ImageHelper::my_error_output_message(j_common_ptr cinfo) {
-                jpegErrorManager* myerr = (jpegErrorManager*) cinfo->err;
-                /* note : *(cinfo->err) is now equivalent to myerr->pub */
-
-                /* output_message is a method to print an error message */
-                /*(* (cinfo->err->output_message) ) (cinfo);*/
-
-                /* Create the message */
-                //    ( *(cinfo->err->format_message) ) (cinfo, jpegLastErrorMsg);
-                //    ( *(cinfo->err->format_message) ) (cinfo, "Jpeg Data error");
-
-                /* Jump to the setjmp point */
-                longjmp(myerr->setjmp_buffer, 1);
-            }
-
 
             /*
             bool ImageHelper::compress_h264(buffer_image *m_bufferImage,

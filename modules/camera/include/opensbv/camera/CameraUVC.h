@@ -29,8 +29,20 @@
 #include <vector>
 #include <mutex>
 
+#include "opensbv/helpers/general/GeneralHelper.h"
+
 namespace opensbv {
     namespace camera {
+
+        /**
+         * CameraUVC Exception class
+         */
+        class CameraUVCException: public opensbv::helpers::general::GeneralException {
+        public:
+            explicit CameraUVCException(const char *fName, const char* msg): GeneralException("CameraUVC", fName, msg) {
+
+            }
+        };
 
         class CameraUVC;
 
@@ -70,20 +82,19 @@ namespace opensbv {
             /**
                Open Camera function for inherited class
              */
-            bool StartCapture();
+            void StartCapture();
 
             /// Close camera
             /**
                Close Camera function for inherited class
              */
-            bool StopCapture();
-
+            void StopCapture();
 
             /// Process Image called on frame ready
             /**
                This function is called when frame is ready
              */
-            virtual void OnFrameReady(const void *p, int size) = 0; // process image
+            virtual void OnFrameReady(const void *p, unsigned long size) = 0; // process image
 
             /// Set Capture method
             /**
@@ -92,8 +103,6 @@ namespace opensbv {
              */
             void SetCaptureFormat(enum capture_format cap_fromat);
 
-            /// Get running status
-            bool IsRunning();
         public:
             /**
              * Camera UVC constructor
@@ -110,8 +119,6 @@ namespace opensbv {
 
         private:
             char *m_dev_name; ///< Device to open
-            bool m_running = false; ///< Capture running or not
-            bool m_hasError = false; ///< Capture has error or not
             buffer  *m_buffers; ///< Capture frame buffer
             enum io_method  m_io; ///< Input out method
             enum capture_format m_cap_format; ///< Capture format
@@ -120,8 +127,6 @@ namespace opensbv {
             unsigned int m_n_buffers; ///< Buffer for image
             unsigned short m_width; ///< Frame width
             unsigned short m_height; ///< Frame height
-            std::mutex m_mtx; ///< mutex for reading frame and stoping it
-            pthread_mutex_t m_main_mutex = PTHREAD_MUTEX_INITIALIZER; ///< Main Mutex
             int m_numErrors; ///< number of errors
 
             void errno_exit(const char *s); ///< Error handling
@@ -135,8 +140,8 @@ namespace opensbv {
             bool init_mmap(void); ///< Init mmap
             bool init_userp(unsigned int buffer_size); ///< Init userp
             bool init_device(void); ///< Init device
-            bool close_device(); ///< Close camera
-            bool open_device(void); ///< Open camera
+            void close_device(); ///< Close camera
+            void open_device(void); ///< Open camera
 
             bool prepare_capture(); ///< Prepare capture
             void switch_device(); ///< Switch camera device

@@ -7,6 +7,8 @@
 namespace opensbv {
     namespace camera {
 
+
+
         CameraUVC::CameraUVC(char device[20], unsigned short width, unsigned short height) {
             m_io = IO_METHOD_MMAP; // set read method
             m_fd = -1; // set fd value
@@ -22,96 +24,38 @@ namespace opensbv {
                 free(this->m_dev_name);
         }
 
-        bool CameraUVC::StartCapture() {
-
-            prepare_capture();
-
-            // open devicef
-            while(this->m_hasError) {
-
-                std::cout << "restarting video capture" << std::endl;
-
-                StopCapture();
-
-                prepare_capture();
-            }
-
-            return true;
-        }
-
-        bool CameraUVC::StopCapture() {
+        void CameraUVC::StartCapture() {
             try {
-                if (this->m_running) {
-                    m_running = false;
+                m_numErrors = 0;
 
-                    pthread_mutex_lock(&this->m_main_mutex);
-                    stop_capturing();
-                    uninit_device();
-                    close_device();
+                open_device();
+                init_device();
+                start_capturing();
 
-                    std::cout << "video capture stopped" << std::endl;
+                mainloop();
 
-                    pthread_mutex_unlock(&this->m_main_mutex);
-                }
-            } catch (...) {
-                std::cerr << "error in CameraUVC::StopCapture()" << std::endl;
-                pthread_mutex_unlock(&this->m_main_mutex);
-                return false;
+            } catch(CameraUVCException &e) {
+                StopCapture();
+                throw;
+            } catch(std::exception &e) {
+                throw CameraUVCException("StartCapture()", e.what());
             }
-            return true;
         }
 
-        bool CameraUVC::prepare_capture() {
-            pthread_mutex_unlock(&this->m_main_mutex);
-
-            if (!open_device()) {
-                close_device();
-                pthread_mutex_unlock(&this->m_main_mutex);
-                return false;
-            }
-
-            if (!init_device()){
-                uninit_device();
-                close_device();
-                pthread_mutex_unlock(&this->m_main_mutex);
-                return false;
-            }
-
-            if (!start_capturing()) {
+        void CameraUVC::StopCapture() {
+            try {
                 stop_capturing();
                 uninit_device();
                 close_device();
-                pthread_mutex_unlock(&this->m_main_mutex);
-                return false;
+            } catch (CameraUVCException &e) {
+                throw;
             }
-
-            std::cout << "video capture started" << std::endl;
-
-            m_running = true;
-            m_hasError = false;
-
-            pthread_mutex_unlock(&this->m_main_mutex);
-
-            return mainloop();
-        }
-
-        void CameraUVC::switch_device() {
-            if (m_dev_num == m_dev_list.size() - 1)
-                m_dev_num = 0;
-
-            memcpy(this->m_dev_name, (char *)m_dev_list[m_dev_num].c_str(), m_dev_list[m_dev_num].length());
-
-            m_dev_num++;
         }
 
         void CameraUVC::errno_exit(const char *s) {
             m_numErrors++;
 
-            if (m_numErrors > 5) {
-                this->m_hasError = true;
-            }
             fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno));
-//    exit(EXIT_FAILURE);
         }
 
         int CameraUVC::xioctl(int fh, int request, void *arg) {
@@ -123,8 +67,6 @@ namespace opensbv {
 
             return r;
         }
-
-        void CameraUVC::OnFrameReady(const void *p, int size) {};
 
         int CameraUVC::read_frame(void) {
             struct v4l2_buffer buf;
@@ -178,10 +120,16 @@ namespace opensbv {
                         return 0;
                     }
 
-                    if (buf.bytesused != 0)
-                        OnFrameReady(this->m_buffers[buf.index].start, buf.bytesused);
-                    else
-                        std::cerr << "CameraUVC: frame is empty" << std::endl;
+                    try {
+                        if (buf.bytesused != 0)
+                            OnFrameReady(this->m_buffers[buf.index].start, buf.bytesused);
+                        else {
+                            std::cerr << "CameraUVC: frame is empty" << std::endl;
+                            errno_exit("empty frame");
+                        }
+                    } catch(...) {
+                        errno_exit("error in overridden function");
+                    }
 
                     if (-1 == xioctl(this->m_fd, VIDIOC_QBUF, &buf)){
                         errno_exit("VIDIOC_QBUF");
@@ -236,14 +184,9 @@ namespace opensbv {
             int r;
 
             for (;;) {
-                pthread_mutex_lock(&this->m_main_mutex);
-                if (!this->m_running) {
-                    pthread_mutex_unlock(&this->m_main_mutex);
-                    return false;
-                }
-                if (this->m_hasError) {
-                    pthread_mutex_unlock(&this->m_main_mutex);
-                    return false;
+                if (m_numErrors > 10) {
+                    m_numErrors = 0;
+                    throw CameraUVCException("mainloop()", "errors while capturing from device");
                 }
 
                 FD_ZERO(&fds);
@@ -257,19 +200,17 @@ namespace opensbv {
 
                 if (-1 == r) {
                     if (EINTR == errno) {
-                        pthread_mutex_unlock(&this->m_main_mutex);
                         continue;
                     }
                     errno_exit("select");
                 }
 
                 if (0 == r) {
-                    fprintf(stderr, "select timeout\n");
+                    errno_exit("select timeout\n");
                 }
 
                 if (read_frame() == 0) {
                 }
-                pthread_mutex_unlock(&this->m_main_mutex);
 
                 /* EAGAIN - continue select loop. */
             }
@@ -318,13 +259,13 @@ namespace opensbv {
 
                         if (-1 == xioctl(this->m_fd, VIDIOC_QBUF, &buf)) {
                             errno_exit("VIDIOC_QBUF");
-                            return false;
+                            throw CameraUVCException("start_capturing()", "VIDIOC_QBUF");
                         }
                     }
                     type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                     if (-1 == xioctl(this->m_fd, VIDIOC_STREAMON, &type)) {
                         errno_exit("VIDIOC_STREAMON");
-                        return false;
+                        throw CameraUVCException("start_capturing()", "VIDIOC_STREAMON");
                     }
                     break;
 
@@ -341,13 +282,13 @@ namespace opensbv {
 
                         if (-1 == xioctl(this->m_fd, VIDIOC_QBUF, &buf)) {
                             errno_exit("VIDIOC_QBUF");
-                            return false;
+                            throw CameraUVCException("start_capturing()", "VIDIOC_QBUF");
                         }
                     }
                     type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                     if (-1 == xioctl(this->m_fd, VIDIOC_STREAMON, &type)) {
                         errno_exit("VIDIOC_STREAMON");
-                        return false;
+                        throw CameraUVCException("start_capturing()", "VIDIOC_STREAMON");
                     }
                     break;
             }
@@ -522,17 +463,17 @@ namespace opensbv {
                 if (EINVAL == errno) {
                     fprintf(stderr, "%s is no V4L2 device\n",
                             this->m_dev_name);
-                    return false;
+                    throw CameraUVCException("init_device()", "device is not v4l2 device");
                 } else {
                     errno_exit("VIDIOC_QUERYCAP");
-                    return false;
+                    throw CameraUVCException("init_device()", "VIDIOC_QUERYCAP");
                 }
             }
 
             if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
                 fprintf(stderr, "%s is no video capture device\n",
                         this->m_dev_name);
-                return false;
+                throw CameraUVCException("init_device()", "device is not video capture device");
             }
 
             switch (this->m_io) {
@@ -540,7 +481,7 @@ namespace opensbv {
                     if (!(cap.capabilities & V4L2_CAP_READWRITE)) {
                         fprintf(stderr, "%s does not support read i/o\n",
                                 this->m_dev_name);
-                        return false;
+                        throw CameraUVCException("init_device()", "device does not support read");
                     }
                     break;
 
@@ -549,7 +490,7 @@ namespace opensbv {
                     if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
                         fprintf(stderr, "%s does not support streaming i/o\n",
                                 this->m_dev_name);
-                        return false;
+                        throw CameraUVCException("init_device()", "device does not support streaming");
                     }
                     break;
             }
@@ -643,29 +584,28 @@ namespace opensbv {
             return true;
         }
 
-        bool CameraUVC::close_device() {
+        void CameraUVC::close_device() {
             if (-1 == close(this->m_fd)) {
                 errno_exit("close");
-                return false;
+                return;
             }
 
             this->m_fd = -1;
 
-            return true;
         }
 
-        bool CameraUVC::open_device(void) {
+        void CameraUVC::open_device(void) {
             struct stat st;
 
             if (-1 == stat(this->m_dev_name, &st)) {
                 fprintf(stderr, "Cannot identify '%s': %d, %s\n",
                         this->m_dev_name, errno, strerror(errno));
-                return false;
+                throw CameraUVCException("open_device()", "Cannot identify device");
             }
 
             if (!S_ISCHR(st.st_mode)) {
                 fprintf(stderr, "%s is no device\n", this->m_dev_name);
-                return false;
+                throw CameraUVCException("open_device()", "no device found");
             }
 
             this->m_fd = open(this->m_dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
@@ -673,18 +613,12 @@ namespace opensbv {
             if (-1 == this->m_fd) {
                 fprintf(stderr, "Cannot open '%s': %d, %s\n",
                         this->m_dev_name, errno, strerror(errno));
-                return false;
+                throw CameraUVCException("open_device()", "can not open device");
             }
-
-            return true;
         }
 
         void CameraUVC::SetCaptureFormat(enum capture_format cap_fromat) {
             this->m_cap_format = cap_fromat;
-        }
-
-        bool CameraUVC::IsRunning() {
-            return m_running;
         }
 
         void *CameraUVC::handleFailures(void *ptr) {

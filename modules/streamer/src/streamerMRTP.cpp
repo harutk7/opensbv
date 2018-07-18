@@ -37,17 +37,25 @@ namespace opensbv {
         }
 
         size_t StreamerMRTP::Write(unsigned char *data, ssize_t size) {
+            try {
+                ImageHelper::compress_jpg_turbo(data, mImageColorType, &m_imageBuffer, mWitdh, mHeight, mQuality);
 
-            if (ImageHelper::compress_jpg_turbo(data, mImageColorType, &m_imageBuffer, mWitdh, mHeight, mQuality)) {
                 mBuffer.assign(m_imageBuffer.buffer+ 0, m_imageBuffer.buffersize, GeneralHelper::GetTimestamp());
+
+            } catch(ImageHelperException &e) {
+                throw StreamerMRTPException("Write", e.what());
+            } catch(std::exception &e) {
                 tjFree(m_imageBuffer.buffer);
-                m_imageBuffer.buffersize = 0;
-                m_imageBuffer.buffer = nullptr;
+                throw StreamerMRTPException("Write", e.what());
+            } catch(...) {
+                tjFree(m_imageBuffer.buffer);
+                throw StreamerMRTPException("Write", "unhandeleted exception");
             }
         }
 
         void StreamerMRTP::server(boost::asio::io_service& io_service, unsigned short port)
         {
+            boost::this_thread::interruption_point();
             std::cout << "sbvStreamer running on port: " << port << std::endl;
             tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
             for (;;)

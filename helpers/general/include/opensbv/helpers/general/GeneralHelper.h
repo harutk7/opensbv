@@ -10,6 +10,9 @@
 #include <vector>
 #include <sstream> // for std::istringstream
 #include <chrono>
+#include <exception>
+#include <iomanip>
+#include <ctime>
 
 using namespace std::chrono;
 
@@ -22,6 +25,7 @@ namespace opensbv {
               Here are function to manipulate with various types of data
             */
             class GeneralHelper {
+
             public:
 
                 /// Format account number
@@ -38,8 +42,37 @@ namespace opensbv {
 
                 /// Get current datetime
                 static std::string GetDateTime();
-            private:
 
+
+            };
+
+        class GeneralException: public std::exception {
+
+            protected:
+                std::string mMsg, mRef, mFname, mFullMessage;
+
+            public:
+
+                explicit GeneralException(const char *ref, const char *fName, const char *message, bool out = true) {
+
+                    mMsg = std::string(message);
+                    mRef = std::string(ref);
+                    mFname = std::string(fName);
+
+                    mFullMessage = mRef + "(" + mFname + "): " + mMsg;
+                }
+
+                const char* what() {
+                    return mFullMessage.c_str();
+                }
+
+                void log() {
+                    time_t now = time(0);
+                    tm *ltm = localtime(&now);
+                    std::cerr << mFullMessage << ": " << ltm->tm_mday << "/" << 1 + ltm->tm_mon << "/" <<
+                              1970 + ltm->tm_year << " " << 1 + ltm->tm_hour << ":" << 1 + ltm->tm_min << ":" <<
+                              1 + ltm->tm_sec << std::endl;
+                }
             };
         }
     }

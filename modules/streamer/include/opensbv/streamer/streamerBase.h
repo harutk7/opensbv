@@ -8,12 +8,13 @@
 #include <iostream>
 #include "opensbv/streamer/streamBuffer.h"
 #include "opensbv/helpers/image/ImageHelper.h"
+#include "opensbv/helpers/general/GeneralHelper.h"
 
+using namespace opensbv::helpers::image;
 using namespace opensbv::helpers::image;
 
 namespace opensbv {
     namespace streamer {
-
 
         class StreamerBase {
 

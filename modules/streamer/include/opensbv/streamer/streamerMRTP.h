@@ -33,6 +33,12 @@ using namespace opensbv::helpers::general;
 namespace opensbv {
     namespace streamer {
 
+        class StreamerMRTPException: public opensbv::helpers::general::GeneralException {
+        public:
+            explicit StreamerMRTPException(const char *fName, const char* msg): GeneralException("StreamerMRTP", fName, msg) {
+
+            }
+        };
 
         class ChunkSplitter {
 

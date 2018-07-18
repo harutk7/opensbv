@@ -18,7 +18,7 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/libs)
 
 add_library(opensbv_camera SHARED ${SOURCE_FILES})
 
-target_link_libraries(opensbv_camera pthread)
+target_link_libraries(opensbv_camera opensbv_helpers_general pthread)
 
 install(TARGETS opensbv_camera DESTINATION lib)
 

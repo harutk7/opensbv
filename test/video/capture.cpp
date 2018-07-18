@@ -34,9 +34,6 @@ Capture::~Capture() {
 
     if (mMRtpStreamer != nullptr)
         delete mMRtpStreamer;
-
-    if (m_grayData != nullptr)
-        free(m_grayData);
 }
 
 // run tracking
@@ -44,13 +41,14 @@ void Capture::Run() {
     try {
         this->StartCapture(); // open camera from Camera class with main loop
 
-    } catch(...) {
-        std::cerr << "error on running Capture" << std::endl;
+    } catch(CameraUVCException &e) {
+        e.log();
+        exit(1);
     }
 }
 
 // Camera Process image override
-void Capture::OnFrameReady(const void *p, int size) {
+void Capture::OnFrameReady(const void *p, unsigned long size) {
     try {
         if (counter == 0){
             time(&start);
@@ -62,15 +60,19 @@ void Capture::OnFrameReady(const void *p, int size) {
             cvtColor(m_frame_yuyv, this->m_frame, CV_YUV2BGR_YUYV);
         }
         else if (m_cap_format == CAP_MJPG) {
-            m_rgbimage.buffersize = 0;
-            m_rgbimage.buffer = NULL;
 
             // decode image
-            if (!ImageHelper::decompress_jpeg((unsigned char *)p, size, &m_rgbimage, IMAGE_COLOR_BGR))
+            try {
+                ImageHelper::decompress_jpg_turbo((unsigned char *)p, size, IMAGE_COLOR_BGR, &m_rgbimage,FRAME_WIDTH, FRAME_WIDTH);
+            } catch(ImageHelperException &e) {
                 return;
+            }
 
             // apply to Mat
             this->m_frame.data = m_rgbimage.buffer;
+
+            cv::resize(m_frame, m_frame_res, cv::Size(1280, 720), 0, 0, cv::INTER_CUBIC);
+
         }
 
         if (first)  {
@@ -83,15 +85,16 @@ void Capture::OnFrameReady(const void *p, int size) {
 
         cv::remap(m_frame, undistort_img, map1, map2, cv::INTER_LINEAR, cv::BORDER_CONSTANT);
 
-        mMRtpStreamer->Write(undistort_img.data, undistort_img.total() * undistort_img.elemSize());
+        try {
+            mMRtpStreamer->Write(undistort_img.data, undistort_img.total() * undistort_img.elemSize());
+        } catch(StreamerMRTPException &e) {
+            e.log();
+        }
 
         if (this->m_display) {
             cv::imshow("m_frame", this->m_frame); // show frame in nameWindow
             cv::waitKey(1);
         }
-
-        if (m_cap_format == CAP_MJPG && m_rgbimage.buffer != nullptr)
-            free(m_rgbimage.buffer);        // free the buffer
 
         // fps counter begin
         time(&end);
