@@ -184,7 +184,7 @@ namespace opensbv {
             int r;
 
             for (;;) {
-                if (m_numErrors > 10) {
+                if (m_numErrors > 5) {
                     m_numErrors = 0;
                     throw CameraUVCException("mainloop()", "errors while capturing from device");
                 }
