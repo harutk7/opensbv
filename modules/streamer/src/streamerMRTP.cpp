@@ -55,6 +55,22 @@ namespace opensbv {
             }
         }
 
+
+        void StreamerMRTP::WriteJPG(unsigned char *data, ssize_t size) {
+            try {
+
+                mBuffer.assign(data+ 0, size, GeneralHelper::GetTimestamp());
+
+            } catch(ImageHelperException &e) {
+                throw StreamerMRTPException("Write", e.what());
+            } catch(std::exception &e) {
+                throw StreamerMRTPException("Write", e.what());
+            } catch(...) {
+                throw StreamerMRTPException("Write", "unhandeleted exception");
+            }
+        }
+
+
         void StreamerMRTP::server(boost::asio::io_service& io_service, unsigned short port)
         {
             boost::this_thread::interruption_point();

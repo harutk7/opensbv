@@ -50,6 +50,10 @@ void Capture::Run() {
 // Camera Process image override
 void Capture::OnFrameReady(const void *p, unsigned long size) {
     try {
+
+        mMRtpStreamer->WriteJPG((unsigned char *)p, size);
+        return;
+
         if (counter == 0){
             time(&start);
         }

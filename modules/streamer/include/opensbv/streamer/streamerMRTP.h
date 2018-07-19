@@ -137,6 +137,13 @@ namespace opensbv {
              */
             size_t Write(unsigned char *data, ssize_t size); // write to stream
 
+            /**
+             * Wrute mjpg
+             * @param data
+             * @param size
+             */
+            void WriteJPG(unsigned char *data, ssize_t size);
+
             /// Run Streaming
             void Run();
 
