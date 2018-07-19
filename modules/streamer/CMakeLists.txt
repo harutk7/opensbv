@@ -28,7 +28,7 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/libs)
 
 add_library(opensbv_streamer SHARED ${HEADER_FILES} ${SOURCE_FILES})
 
-target_link_libraries(opensbv_streamer ${CMAKE_BINARY_DIR}/libs/libopensbv_helpers_general.so boost_system boost_thread pthread)
+target_link_libraries(opensbv_streamer ${CMAKE_BINARY_DIR}/libs/libopensbv_helpers_general.so ${CMAKE_BINARY_DIR}/libs/libopensbv_helpers_image.so boost_system boost_thread pthread)
 
 install(TARGETS opensbv_streamer DESTINATION lib)
 

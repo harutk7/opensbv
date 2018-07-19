@@ -71,8 +71,6 @@ void Capture::OnFrameReady(const void *p, unsigned long size) {
             // apply to Mat
             this->m_frame.data = m_rgbimage.buffer;
 
-            cv::resize(m_frame, m_frame_res, cv::Size(1280, 720), 0, 0, cv::INTER_CUBIC);
-
         }
 
         if (first)  {
