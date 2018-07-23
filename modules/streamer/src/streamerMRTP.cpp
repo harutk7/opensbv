@@ -42,15 +42,19 @@ namespace opensbv {
 
                 mBuffer.assign(m_imageBuffer.buffer+ 0, m_imageBuffer.buffersize, GeneralHelper::GetTimestamp());
 
-                tjFree(m_imageBuffer.buffer);
+                delete m_imageBuffer.buffer;
+                m_imageBuffer.buffer = nullptr;
             } catch(ImageHelperException &e) {
                 tjFree(m_imageBuffer.buffer);
+                m_imageBuffer.buffer = nullptr;
                 throw StreamerMRTPException("Write", e.what());
             } catch(std::exception &e) {
                 tjFree(m_imageBuffer.buffer);
+                m_imageBuffer.buffer = nullptr;
                 throw StreamerMRTPException("Write", e.what());
             } catch(...) {
                 tjFree(m_imageBuffer.buffer);
+                m_imageBuffer.buffer = nullptr;
                 throw StreamerMRTPException("Write", "unhandeleted exception");
             }
         }

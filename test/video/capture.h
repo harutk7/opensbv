@@ -41,7 +41,7 @@ private:
     cv::Mat m_frame; ///< Frames from VideoCapture and CopyTo
     cv::Mat m_frame_yuyv; ///< YUYV Mat object
     buffer_image m_rgbimage; ///< Decompress image struct
-    bool m_display = false; ///< Display window or not
+    bool m_display = true; ///< Display window or not
     enum capture_format m_cap_format = CAP_MJPG; ///< Capture format
     unsigned char *m_grayData; ///< Graysacle data
 

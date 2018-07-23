@@ -74,7 +74,7 @@ namespace opensbv {
 
                     //to free the memory allocated by TurboJPEG (either by tjAlloc(),
                     //or by the Compress/Decompress) after you are done working on it:
-                    //        tjFree(image->buffer);
+//                            tjFree(image->buffer);
 
                 } catch (std::exception &e) {
                     tjFree(image->buffer);
