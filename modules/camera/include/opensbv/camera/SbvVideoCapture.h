@@ -67,6 +67,7 @@ namespace opensbv {
             double mFps; ///< capture fps
             boost::thread mWorkerThread; ///< worker thread
             std::mutex mTx; ///<mutex
+            bool mRead; ///< read data or not
 
             // fps counter begin
             time_t start, end;

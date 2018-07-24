@@ -50,7 +50,10 @@ namespace opensbv {
         cv::Mat SbvVideoCapture::readMat() {
             mTx.lock();
             cv::Mat frame;
-            m_frame.copyTo(frame);
+            if (mRead) {
+                m_frame.copyTo(frame);
+                mRead = false;
+            }
             mTx.unlock();
             return frame;
         }
@@ -95,6 +98,7 @@ namespace opensbv {
                 if (counter == (INT_MAX - 1000))
                     counter = 0;
 
+                mRead = true;
                 mTx.unlock();
 
             } catch(Exception &e) {
