@@ -114,9 +114,6 @@ namespace opensbv {
             ~CameraUVC(); ///< Destructor
 
 
-            static void *handleFailures(void *); ///< handle error failure thread
-
-
         private:
             char *m_dev_name; ///< Device to open
             buffer  *m_buffers; ///< Capture frame buffer

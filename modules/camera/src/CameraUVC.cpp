@@ -621,12 +621,5 @@ namespace opensbv {
             this->m_cap_format = cap_fromat;
         }
 
-        void *CameraUVC::handleFailures(void *ptr) {
-            auto *params = (failureHandlestruct *)ptr;
-
-            params->m_inst->StopCapture();
-
-            params->m_inst->StartCapture();
-        }
     }
 }

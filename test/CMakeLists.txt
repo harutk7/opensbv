@@ -9,9 +9,10 @@ find_package(OpenCV)
 SET(Native_LIBS ${CMAKE_BINARY_DIR}/libs/libopensbv_camera.so ${CMAKE_BINARY_DIR}/libs/libopensbv_helpers_image.so ${CMAKE_BINARY_DIR}/libs/libopensbv_helpers_general.so ${CMAKE_BINARY_DIR}/libs/libopensbv_streamer.so)
 
 set(VIDEO_TEST_FILES
-        video/capture.h
-        video/capture.cpp
         video/main.cpp
+        )
+set(VIDEO_CLIENT_TEST_FILES
+        videoClient/main.cpp
         )
 
 set(STREAM_TEST_FILES

@@ -13,6 +13,10 @@ set(HEADER_FILES
         include/opensbv/streamer/streamBuffer.h
         include/opensbv/streamer/streamerBase.h
         include/opensbv/streamer/streamer.h
+        include/opensbv/streamer/capture.h
+        include/opensbv/streamer/abstractCapture.h
+        include/opensbv/streamer/captureMRTP.h
+        include/opensbv/streamer/udpServer.h
         )
 
 set(SOURCE_FILES
@@ -20,6 +24,9 @@ set(SOURCE_FILES
         src/streamBuffer.cpp
         src/streamerBase.cpp
         src/streamer.cpp
+        src/capture.cpp
+        src/captureMRTP.cpp
+        src/udpServer.cpp
         )
 
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/libs)

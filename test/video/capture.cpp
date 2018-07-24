@@ -54,11 +54,41 @@ void Capture::OnFrameReady(const void *p, unsigned long size) {
         if (counter == 0){
             time(&start);
         }
-//        int start_s=clock();
+        int start_s=clock();
 
         if (m_cap_format == CAP_YUYV) {
             memcpy( m_frame_yuyv.data, (char *)p, sizeof(unsigned char) * (FRAME_WIDTH * 2 * FRAME_HEIGHT) );
             cvtColor(m_frame_yuyv, this->m_frame, CV_YUV2BGR_YUYV);
+
+
+            if (this->m_display) {
+                cv::imshow("m_frame", this->m_frame); // show frame in nameWindow
+                cv::waitKey(1);
+            }
+
+
+            // fps counter begin
+            time(&end);
+            counter++;
+            sec = difftime(end, start);
+            fps = counter/sec;
+            if (counter > 30) {
+                char buffer[30];
+                sprintf (buffer, "%.2f", fps);
+                printf("%.2f\n", fps);
+//            cout << "\r" <<fps << " fps\n" << flush;
+                fflush(stdout);
+                //cv::putText(m_frame, buffer, cvPoint(50,50),
+                //      cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200,200,250), 1, CV_AA);
+            }
+//        printf("%.2f", fps);
+            // overflow protection
+            if (counter == (INT_MAX - 1000))
+                counter = 0;
+
+            mMRtpStreamer->Write(m_frame.data, m_frame.total() * m_frame.elemSize());
+            return;
+
         }
         else if (m_cap_format == CAP_MJPG) {
 
@@ -72,6 +102,11 @@ void Capture::OnFrameReady(const void *p, unsigned long size) {
             // apply to Mat
             this->m_frame.data = m_rgbimage.buffer;
 
+            if (this->m_display) {
+                cv::imshow("m_frame", this->m_frame); // show frame in nameWindow
+                cv::waitKey(1);
+            }
+            return;
         }
 
         if (first)  {
@@ -90,29 +125,6 @@ void Capture::OnFrameReady(const void *p, unsigned long size) {
             e.log();
         }
 
-        if (this->m_display) {
-            cv::imshow("m_frame", this->m_frame); // show frame in nameWindow
-            cv::waitKey(1);
-        }
-
-        // fps counter begin
-        time(&end);
-        counter++;
-        sec = difftime(end, start);
-        fps = counter/sec;
-        if (counter > 30) {
-            char buffer[30];
-            sprintf (buffer, "%.2f", fps);
-//            printf("%.2f\n", fps);
-//            cout << "\r" <<fps << " fps\n" << flush;
-//            fflush(stdout);
-            //cv::putText(m_frame, buffer, cvPoint(50,50),
-            //      cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200,200,250), 1, CV_AA);
-        }
-//        printf("%.2f", fps);
-        // overflow protection
-        if (counter == (INT_MAX - 1000))
-            counter = 0;
 
     } catch(Exception &e) {
         std::cerr << "error in StartCapture" << e.what() << std::endl;
