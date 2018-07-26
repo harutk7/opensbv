@@ -13,20 +13,23 @@ int main(int argc, char* argv[]) {
     Capture cap(CAPTURE_MRTP, 12345);
     cap.setHost("127.0.0.1");
     cap.setPort(8554);
-    cap.connect();
+    if(!cap.connect())
+        return 0;
     cap.run();
 
-    while(true) {
-        std::vector<unsigned char> data = cap.getData();
-        if (data.empty())
-            continue;
+    while(cap.isOpened()) {
+        try {
+            cv::Mat frame = cap.readMat();
+            if (frame.empty())
+                continue;
 
-        cv::Mat frame = cv::imdecode(cv::Mat(data), 1);
+            cv::imshow("frame", frame);
+            cv::waitKey(1);
 
-        if (frame.empty())
-            continue;
+        } catch(StreamerException &e) {
 
-        cv::imshow("frame", frame);
-        cv::waitKey(1);
+        }
     }
+
+    return 0;
 }

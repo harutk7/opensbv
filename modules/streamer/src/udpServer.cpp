@@ -7,46 +7,32 @@
 
 namespace opensbv {
     namespace streamer {
-        UdpServer::UdpServer(boost::asio::io_service &io_service, short port)
-                : socket_(io_service, udp::endpoint(udp::v4(), port)) {
-            std::cout << "udp server running on port: " << port << std::endl;
+        UdpServer::UdpServer(AbstractCapture* capture, std::string host, short port) : mListen_endpoint(
+                boost::asio::ip::address::from_string(host),
+                port), mClient(mListen_endpoint)
+                 {
+             mCapture = capture;
         }
 
-        void UdpServer::do_receive() {
+        UdpServer::~UdpServer() {
+        }
 
-            while(true) {
-                boost::this_thread::interruption_point();
-                size_t bytes_recvd = socket_.receive_from(
-                        boost::asio::buffer(data_, max_length), sender_endpoint_);
-
-                if (bytes_recvd > 0) {
-                    if (mCapture != nullptr)
-                        mCapture->onRecv(data_, bytes_recvd);
+        void UdpServer::run() {
+            for (;;)
+            {
+                char data[max_length];
+                boost::system::error_code ec;
+                std::size_t n = mClient.receive(boost::asio::buffer(data),
+                                          boost::posix_time::seconds(1), ec);
+                if (ec)
+                {
+                    throw std::exception();
+                }
+                else
+                {
+                    mCapture->onRecv(data, n);
                 }
             }
-//            socket_.async_receive_from(
-//                    boost::asio::buffer(data_, max_length), sender_endpoint_,
-//                    [this](boost::system::error_code ec, std::size_t bytes_recvd) {
-//                        boost::this_thread::interruption_point();
-//                        if (!ec && bytes_recvd > 0) {
-//                            if (mCapture != nullptr)
-////                            do_send(bytes_recvd);
-//                        }
-//
-//                        do_receive();
-//                    });
-        }
-
-        void UdpServer::setCapture(AbstractCapture *cap) {
-            mCapture = cap;
-        }
-
-        void UdpServer::do_send(std::size_t length) {
-            socket_.async_send_to(
-                    boost::asio::buffer(data_, length), sender_endpoint_,
-                    [this](boost::system::error_code /*ec*/, std::size_t /*bytes_sent*/) {
-                        do_receive();
-                    });
         }
     }
 }

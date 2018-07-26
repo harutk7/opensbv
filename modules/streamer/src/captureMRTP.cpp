@@ -8,11 +8,12 @@ namespace opensbv {
     namespace streamer {
 
         // MAIN CLASS
-        CaptureMRTP::CaptureMRTP(): mData() {
-
+        CaptureMRTP::CaptureMRTP(): mCombiner(), mLength(0), mData(nullptr) {
         }
 
-        CaptureMRTP::~CaptureMRTP() {}
+        CaptureMRTP::~CaptureMRTP() {
+            delete mData;
+        }
 
         void CaptureMRTP::onRecv(char *buf, size_t n) {
 
@@ -23,11 +24,26 @@ namespace opensbv {
         }
 
         std::vector<unsigned char> CaptureMRTP::getData() {
-            return mData;
+            std::vector<unsigned char> vec = {};
+
+            if (mData == nullptr)
+                return vec;
+
+            mTx.lock();
+            std::copy(mData + 0, mData + mLength, std::back_inserter(vec));
+            delete mData;
+            mData = nullptr;
+            mTx.unlock();
+            return vec;
         }
 
-        void CaptureMRTP::fill(std::vector<unsigned char> vec) {
-            mData = vec;
+        void CaptureMRTP::fill(std::vector<unsigned char> &vec) {
+            mTx.lock();
+            delete mData;
+            mLength = vec.size();
+            mData = new unsigned char[vec.size()];
+            std::copy(vec.begin(), vec.end(), mData + 0);
+            mTx.unlock();
         }
 
         // CHUNK COMBINER CLASS
@@ -43,12 +59,11 @@ namespace opensbv {
             return mReady;
         }
 
-        std::vector<unsigned char> ChunkCombiner::getNext() {
+        std::vector<unsigned char>& ChunkCombiner::getNext() {
 
             unsigned long a = (unsigned long)duration_cast< milliseconds >(
                     system_clock::now().time_since_epoch()
             ).count();
-
 
 //            std::cout << a - mTimestamp << std::endl;
             return mData;

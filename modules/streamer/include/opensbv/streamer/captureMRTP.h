@@ -15,6 +15,7 @@
 #include <utility>
 #include <chrono>
 #include <cstdlib>
+#include <mutex>
 
 #include "opensbv/streamer/abstractCapture.h"
 #include "opensbv/helpers/general/GeneralHelper.h"
@@ -24,41 +25,85 @@ using namespace std::chrono;
 namespace opensbv {
     namespace streamer {
 
+        /// Client chunk combiner
         class ChunkCombiner {
-            std::vector<unsigned char> mData;
-            size_t mLength = 0;
-            int mMaxChunk = 0;
-            int mCurChunk = 0;
-            unsigned long mTimestamp = 0;
+            std::vector<unsigned char> mData; ///< vector of data
+            size_t mLength = 0; ///< Length of buffer
+            int mMaxChunk = 0; ///< max chunks
+            int mCurChunk = 0; ///< current chunk
+            unsigned long mTimestamp = 0; ///< current timestamp
 
-            bool mReady = false;
+            bool mReady = false; ///< is full package combined or not
 
         public:
+            /**
+             * constructor
+             */
             ChunkCombiner();
+            /**
+             * destructor
+             */
             ~ChunkCombiner();
 
+            /**
+             * add chunk
+             * @param buf
+             * @param n
+             */
             void add(char *buf, size_t n);
 
+            /**
+             * us full package combined and read or not
+             * @return
+             */
             bool isReady();
 
-            std::vector<unsigned char> getNext();
+            /**
+             * get next package
+             * @return
+             */
+            std::vector<unsigned char>& getNext();
 
+            /*
+             * delete next package
+             */
             void deleteNext();
         };
 
+        /// Capture from MRTP streaming protocol
         class CaptureMRTP: public AbstractCapture {
 
-            std::vector<unsigned char> mData;
-            ChunkCombiner mCombiner;
+            unsigned char *mData; ///< data of current package
+            size_t mLength; ///< length of package
+            ChunkCombiner mCombiner; ///< ChunkCombiner class instance
+            std::mutex mTx; ///< mutex for reading writing data
 
         public:
 
+            /**
+             * constructor
+             */
             CaptureMRTP();
+            /**
+             * destructor
+             */
             ~CaptureMRTP();
 
-            void fill(std::vector<unsigned char> vec);
+            /**
+             * fill the data
+             * @param vec regerance of combined vector package
+             */
+            void fill(std::vector<unsigned char> &vec);
 
+            /*
+             * data receive from udp server
+             */
             void onRecv(char *buf, size_t n);
+
+            /**
+             * get data
+             * @return
+             */
             std::vector<unsigned char> getData();
         };
 

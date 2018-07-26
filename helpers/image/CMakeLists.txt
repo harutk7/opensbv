@@ -23,7 +23,12 @@ add_library(opensbv_helpers_image SHARED ${SOURCE_HELPERS} )
 
 SET(JPEG_TURBO_LIB libturbojpeg.so)
 
-target_link_libraries(opensbv_helpers_image ${JPEG_TURBO_LIB} opensbv_helpers_general pthread)
+target_link_libraries(opensbv_helpers_image
+        ${JPEG_TURBO_LIB}
+        ${CMAKE_BINARY_DIR}/libs/libopensbv_helpers_general.so
+        pthread)
+
+add_dependencies(opensbv_helpers_image opensbv_helpers_general)
 
 install(TARGETS opensbv_helpers_image DESTINATION lib)
 

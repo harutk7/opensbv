@@ -18,6 +18,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
+#include <opencv2/opencv.hpp>
+
 #include "opensbv/streamer/udpServer.h"
 #include "opensbv/helpers/general/GeneralHelper.h"
 
@@ -51,12 +53,15 @@ namespace opensbv {
             std::string mHost; ///< hostname
             ushort mPort, mUdpPort; ///< port
             tcp::socket *m_s;
+            boost::asio::io_service io_service; ///< io service
 
             boost::thread m_udpServer;
 
             CaptureType mType; ///< type
 
             AbstractCapture *mCapture = nullptr; ///< Capture for getting data
+
+            bool mOpened; ///< capture running or not
 
             /**
              * get run command
@@ -97,7 +102,7 @@ namespace opensbv {
             /**
              * connect
              */
-            void connect();
+            bool connect();
 
             /**
              * disconnect
@@ -114,18 +119,30 @@ namespace opensbv {
              */
             void stop();
 
+            /***
+             * is capture opened or not
+             * @return
+             */
+            bool isOpened();
+
             /**
              * get data
              * @return
              */
-            std::vector<unsigned char> getData();
+            std::vector<unsigned char> read();
+
+            /**
+             * read cv Mat frame
+             * @return
+             */
+            cv::Mat readMat();
 
             /**
              * run udp server worker function
              * @param port
              * @param capture
              */
-            static void runUdpServer(unsigned short port, AbstractCapture* capture);
+            static void runUdpServer(unsigned short port, AbstractCapture* capture, bool *opened);
 
         };
     }

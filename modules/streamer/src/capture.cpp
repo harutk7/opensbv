@@ -7,7 +7,7 @@
 namespace opensbv {
     namespace streamer {
 
-        Capture::Capture(opensbv::streamer::CaptureType type) {
+        Capture::Capture(opensbv::streamer::CaptureType type): mOpened(false) {
             mType = type;
             mUdpPort = 2341;
 
@@ -36,40 +36,62 @@ namespace opensbv {
 
         Capture::~Capture() {
             stop();
+            io_service.stop();
+            m_s->close();
             delete m_s;
             delete mCapture;
         }
 
-        void Capture::connect() {
+        bool Capture::isOpened() {
+            return mOpened;
+        }
+
+        bool Capture::connect() {
+            bool status = true;
             try {
-                boost::asio::io_service io_service;
 
                 m_s = new tcp::socket(io_service);
                 tcp::resolver resolver(io_service);
 //                boost::asio::connect(*m_s, resolver.resolve({m_address, std::to_string(m_port)}));
                 tcp::resolver::iterator iterator = resolver.resolve({mHost, std::to_string(mPort)});
-                m_s->connect(*iterator);
-                std::cout << "connected to sbStreamer server " << mHost << ":" << mPort << std::endl;
+                boost::system::error_code ec;
+                m_s->connect(*iterator, ec);
+                if (ec) {
+                    status = false;
+                } else {
+                    std::cout << "connected to sbStreamer server " << mHost << ":" << mPort << std::endl;
+                }
+
+                std::cout << "streamer connected " << mHost << ":" << mPort << std::endl;
             } catch(boost::exception &e) {
-                throw StreamerException("Capture::connect()", "boost::exception");
+                status = false;
+                StreamerException("Capture::connect()", "boost::exception").log();
             } catch (boost::system::system_error const& e) {
-                throw StreamerException("Capture::connect()", e.what());
+                status = false;
+                StreamerException("Capture::connect()", e.what()).log();
             } catch (...) {
-                throw StreamerException("Capture::connect()", "unknown exception");
+                status = false;
+                StreamerException("Capture::connect()", "unknown exception").log();
             }
+            return status;
         }
 
         void Capture::run() {
-            m_udpServer = boost::thread(&Capture::runUdpServer, mUdpPort, mCapture);
+            m_udpServer = boost::thread(&Capture::runUdpServer, mUdpPort, mCapture, &mOpened);
 
             std::string cmd = getRunCmd();
             size_t request_length = cmd.length();
             boost::asio::write(*m_s, boost::asio::buffer(cmd.c_str(), request_length));
+
+            mOpened = true;
         }
 
         void Capture::stop() {
             m_udpServer.interrupt();
             m_udpServer.join();
+            mOpened = false;
+
+            std::cout << "streamer disconnected " << mHost << ":" << mPort << std::endl;
         }
 
         void Capture::disconnect() {
@@ -85,7 +107,7 @@ namespace opensbv {
             return ss.str();
         }
 
-        std::vector<unsigned char> Capture::getData() {
+        std::vector<unsigned char> Capture::read() {
 
             if (mCapture != nullptr)
                 return mCapture->getData();
@@ -93,21 +115,33 @@ namespace opensbv {
                 return std::vector<unsigned char>();
         }
 
-        void Capture::runUdpServer(unsigned short port, opensbv::streamer::AbstractCapture *capture) {
+        cv::Mat Capture::readMat() {
+
+            if (mCapture != nullptr) {
+
+                std::vector<unsigned char> data = mCapture->getData();
+
+                if (data.empty())
+                    return cv::Mat();
+
+                return cv::imdecode(cv::Mat(data), 1);
+            }
+            else
+                return cv::Mat();
+        }
+
+        void Capture::runUdpServer(unsigned short port, opensbv::streamer::AbstractCapture *capture, bool *opened) {
             try {
-                boost::asio::io_service io_service;
+                UdpServer s(capture, "0.0.0.0", port);
 
-                UdpServer s(io_service, port);
-
-                s.setCapture(capture);
-
-                s.do_receive();
+                s.run();
 
             } catch(boost::thread_interrupted const&e) {
-                throw StreamerException("Capture::runUdpServer()", "thread interrupted");
-            } catch(...){
-
+                int b = 2;
+            } catch(std::exception &e){
+                int a = 1;
             }
+            *opened = false;
         }
 
     }
