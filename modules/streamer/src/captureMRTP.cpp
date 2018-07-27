@@ -75,7 +75,7 @@ namespace opensbv {
 
         void ChunkCombiner::add(char *buf, size_t n) {
 
-            std::string bufStr(buf + (n - 40), buf + n);
+            std::string bufStr(buf + (n - 30), buf + n);
 
             std::size_t found = bufStr.find("-+-");
             if (found!=std::string::npos) {
@@ -89,6 +89,9 @@ namespace opensbv {
                     int curChunk = std::stoi(infos[2]);
                     unsigned long timestamp = std::stoul(infos[3]);
 
+                    if (curChunk == maxChunk) {
+                        int a=  1;
+                    }
                     if (timestamp != mTimestamp) {
                         mData.clear();
                         mLength = 0;
@@ -99,8 +102,8 @@ namespace opensbv {
                         mCurChunk = curChunk;
                     }
 
-                    mLength += (n - 40 + found);
-                    std::copy(buf + 0, buf + (n - 40 + found), std::back_inserter(mData));
+                    mLength += (n - (str2.length() + 3));
+                    std::copy(buf + 0, buf + (n - (str2.length() + 3)), std::back_inserter(mData));
                     mReady = mLength == length;
                 }
             }

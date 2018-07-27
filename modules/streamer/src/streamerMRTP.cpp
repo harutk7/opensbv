@@ -280,10 +280,10 @@ namespace opensbv {
 
                     std::vector<unsigned char> currentChunk;
                     currentChunk.assign(buf + startPos,  buf + endPos);
+
                     std::copy(currentPrefix.c_str() + 0, currentPrefix.c_str() + currentPrefix.length(), std::back_inserter(currentChunk));
 
                     mList.emplace_back(currentChunk);
-
                 } else {
                     break;
                 }
