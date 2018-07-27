@@ -89,9 +89,6 @@ namespace opensbv {
                     int curChunk = std::stoi(infos[2]);
                     unsigned long timestamp = std::stoul(infos[3]);
 
-                    if (curChunk == maxChunk) {
-                        int a=  1;
-                    }
                     if (timestamp != mTimestamp) {
                         mData.clear();
                         mLength = 0;
