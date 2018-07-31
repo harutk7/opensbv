@@ -20,6 +20,7 @@ namespace opensbv {
         void UdpServer::run() {
             for (;;)
             {
+                boost::this_thread::interruption_point();
                 char data[max_length];
                 boost::system::error_code ec;
                 std::size_t n = mClient.receive(boost::asio::buffer(data),

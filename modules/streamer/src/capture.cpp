@@ -25,7 +25,6 @@ namespace opensbv {
             }
         }
 
-
         void Capture::setHost(std::string host) {
             mHost = host;
         }
