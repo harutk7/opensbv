@@ -59,6 +59,12 @@ namespace opensbv {
             bool isReady();
 
             /**
+             * get timestamp of frame
+             * @return
+             */
+            unsigned long getTimestmap();
+
+            /**
              * get next package
              * @return
              */
@@ -99,6 +105,12 @@ namespace opensbv {
              * data receive from udp server
              */
             void onRecv(char *buf, size_t n);
+
+            /**
+             * get current timestamp of frame
+             * @return
+             */
+            unsigned long getTimestamp();
 
             /**
              * get data

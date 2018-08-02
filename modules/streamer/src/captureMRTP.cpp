@@ -37,6 +37,10 @@ namespace opensbv {
             return vec;
         }
 
+        unsigned long CaptureMRTP::getTimestamp() {
+            return mCombiner.getTimestmap();
+        }
+
         void CaptureMRTP::fill(std::vector<unsigned char> &vec) {
             mTx.lock();
             delete mData;
@@ -71,6 +75,10 @@ namespace opensbv {
 
         void ChunkCombiner::deleteNext() {
 
+        }
+
+        unsigned long ChunkCombiner::getTimestmap() {
+            return mTimestamp;
         }
 
         void ChunkCombiner::add(char *buf, size_t n) {

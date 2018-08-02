@@ -25,6 +25,12 @@ namespace opensbv {
             }
         }
 
+        unsigned long Capture::getTimestamp() {
+            if (mCapture != nullptr) {
+                mCapture->getTimestamp();
+            }
+        }
+
         void Capture::setHost(std::string host) {
             mHost = host;
         }

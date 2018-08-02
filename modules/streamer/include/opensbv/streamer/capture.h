@@ -138,6 +138,13 @@ namespace opensbv {
             cv::Mat readMat();
 
             /**
+             * get frame timestamp, if null, return current timestamp,
+             * Only captureMRTP supports frame timestamp right now
+             * @return
+             */
+            unsigned long getTimestamp();
+
+            /**
              * run udp server worker function
              * @param port
              * @param capture
