@@ -83,6 +83,12 @@ namespace opensbv {
             explicit Capture(CaptureType type, unsigned short udpPort);
 
             /**
+             * Copy constructor
+             * @param bj
+             */
+            Capture(Capture &bj);
+
+            /**
              * destructor
              */
             ~Capture();

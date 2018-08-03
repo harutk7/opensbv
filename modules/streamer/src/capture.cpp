@@ -25,6 +25,10 @@ namespace opensbv {
             }
         }
 
+        Capture::Capture(opensbv::streamer::Capture &bj) {
+
+        }
+
         unsigned long Capture::getTimestamp() {
             if (mCapture != nullptr) {
                 mCapture->getTimestamp();
