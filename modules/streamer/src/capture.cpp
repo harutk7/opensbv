@@ -36,7 +36,18 @@ namespace opensbv {
         }
 
         void Capture::setHost(std::string host) {
-            mHost = host;
+            try {
+               std::vector<std::string> vec = opensbv::helpers::general::GeneralHelper::explode(host, ':');
+
+               if (vec.size() == 2) {
+                   mHost = vec[0];
+                   setPort((ushort)std::stoi(vec[1]));
+               } else {
+                   mHost = host;
+               }
+            } catch(std::exception &e) {
+                mHost = host;
+            }
         }
 
         void Capture::setPort(ushort port) {
