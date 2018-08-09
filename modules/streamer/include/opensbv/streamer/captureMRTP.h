@@ -31,7 +31,7 @@ namespace opensbv {
             size_t mLength = 0; ///< Length of buffer
             int mMaxChunk = 0; ///< max chunks
             int mCurChunk = 0; ///< current chunk
-            unsigned long mTimestamp = 0; ///< current timestamp
+            long long int mTimestamp = 0; ///< current timestamp
 
             bool mReady = false; ///< is full package combined or not
 
@@ -62,7 +62,7 @@ namespace opensbv {
              * get timestamp of frame
              * @return
              */
-            unsigned long getTimestmap();
+            long long int getTimestmap();
 
             /**
              * get next package
@@ -110,7 +110,7 @@ namespace opensbv {
              * get current timestamp of frame
              * @return
              */
-            unsigned long getTimestamp();
+            long long int getTimestamp();
 
             /**
              * get data

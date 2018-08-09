@@ -29,7 +29,7 @@ namespace opensbv {
 
         }
 
-        unsigned long Capture::getTimestamp() {
+        long long int Capture::getTimestamp() {
             if (mCapture != nullptr) {
                 mCapture->getTimestamp();
             }

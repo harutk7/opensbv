@@ -31,7 +31,7 @@ namespace opensbv {
              * get frame timestamp if available or receive timestamp
              * @return
              */
-            virtual unsigned long getTimestamp() = 0;
+            virtual long long int getTimestamp() = 0;
         };
     }
 }

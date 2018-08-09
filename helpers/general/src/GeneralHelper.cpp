@@ -37,12 +37,11 @@ namespace opensbv {
                 return result;
             }
 
-            unsigned long GeneralHelper::GetTimestamp() {
-
+            long long int GeneralHelper::GetTimestamp() {
                 boost::posix_time::ptime time_t_epoch(date(1970,1,1));
                 boost::posix_time::ptime now = microsec_clock::local_time();
                 boost::posix_time::time_duration diff = now - time_t_epoch;
-                unsigned long x = (unsigned long)diff.total_milliseconds();
+                return diff.total_milliseconds();
 //                return duration_cast< milliseconds >(
 //                        system_clock::now().time_since_epoch()
 //                ).count();

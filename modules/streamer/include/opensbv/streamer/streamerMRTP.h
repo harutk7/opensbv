@@ -50,7 +50,7 @@ namespace opensbv {
             ChunkSplitter();
             ~ChunkSplitter();
 
-            void split(unsigned char *buf, size_t n, unsigned long timeStamp);
+            void split(unsigned char *buf, size_t n, long long int timeStamp);
 
             bool hasNext();
 
