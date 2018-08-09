@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
     Capture cap(CAPTURE_MRTP, port);
     cap.setHost(host);
-    cap.setPort(8554);
+    cap.setPort(8526);
     if(!cap.connect())
         return 0;
     cap.run();
@@ -28,7 +28,6 @@ int main(int argc, char* argv[]) {
     std::string filename;
     filename = host + "_" + GeneralHelper::GetDateTime() + ".avi";
 
-    cv::VideoWriter video(filename,CV_FOURCC('M','J','P','G'),10, cv::Size(1280,720));
 
     int count = 1;
     while(cap.isOpened()) {
@@ -39,9 +38,6 @@ int main(int argc, char* argv[]) {
 
 //            video.write(frame);
 
-            count++;
-            if (count == 3)
-                break;
             cv::imshow("frame", frame);
             cv::waitKey(1);
 

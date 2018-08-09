@@ -3,6 +3,15 @@
 //
 
 #include "opensbv/helpers/general/GeneralHelper.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/time_zone_base.hpp>
+
+#include <boost/date_time/local_time/local_time.hpp>
+
+#include <boost/date_time/gregorian/gregorian.hpp>
+using namespace boost::gregorian;
+using namespace boost::local_time;
+using namespace boost::posix_time;
 
 namespace opensbv {
 
@@ -30,9 +39,13 @@ namespace opensbv {
 
             unsigned long GeneralHelper::GetTimestamp() {
 
-                return duration_cast< milliseconds >(
-                        system_clock::now().time_since_epoch()
-                ).count();
+                boost::posix_time::ptime time_t_epoch(date(1970,1,1));
+                boost::posix_time::ptime now = microsec_clock::local_time();
+                boost::posix_time::time_duration diff = now - time_t_epoch;
+                unsigned long x = (unsigned long)diff.total_milliseconds();
+//                return duration_cast< milliseconds >(
+//                        system_clock::now().time_since_epoch()
+//                ).count();
             }
 
             std::string GeneralHelper::GetDateTime() {
