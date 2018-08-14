@@ -23,11 +23,21 @@ using namespace opensbv::helpers::image;
 namespace opensbv {
     namespace camera {
 
-/// Capture class
-/**
- * Capture Object class for t
- * racking object
- */
+        /**
+         * SbvVideoCapture Exception class
+         */
+        class SbvVideoCaptureException: public opensbv::helpers::general::GeneralException {
+        public:
+            explicit SbvVideoCaptureException(const char *fName, const char* msg): GeneralException("SbvVideoCapture", fName, msg) {
+
+            }
+        };
+
+        /// Capture class
+        /**
+         * Capture Object class for t
+         * racking object
+         */
         class SbvVideoCapture: protected CameraUVC {
         public:
             SbvVideoCapture(string camera, unsigned short width, unsigned short height, capture_format format); ///< Constructor

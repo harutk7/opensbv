@@ -65,11 +65,6 @@ namespace opensbv {
 
         std::vector<unsigned char>& ChunkCombiner::getNext() {
 
-            long long int a = (long long int)duration_cast< milliseconds >(
-                    system_clock::now().time_since_epoch()
-            ).count();
-
-//            std::cout << a - mTimestamp << std::endl;
             return mData;
         }
 

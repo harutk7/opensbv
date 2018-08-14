@@ -10,18 +10,31 @@ namespace opensbv {
 
 
         CameraUVC::CameraUVC(char device[20], unsigned short width, unsigned short height) {
-            m_io = IO_METHOD_MMAP; // set read method
-            m_fd = -1; // set fd value
-            this->m_dev_name = (char *)malloc(20);
-            memcpy(this->m_dev_name, device, 20);
-            this->m_cap_format = CAP_MJPG;
-            this->m_width = width;
-            this->m_height = height;
+            try {
+                m_fd = -1; // set fd value
+                m_io = IO_METHOD_MMAP; // set read method
+                this->m_dev_name = (char *)malloc(20);
+                memcpy(this->m_dev_name, device, 20);
+                this->m_cap_format = CAP_YUYV;
+                this->m_width = width;
+                this->m_height = height;
+                m_isOpened = false;
+            } catch(std::exception &e) {
+                throw CameraUVCException("CameraUVC()", e.what());
+            }
         }
 
         CameraUVC::~CameraUVC() {
-            if (this->m_dev_name != nullptr)
-                free(this->m_dev_name);
+            try {
+                if (this->m_dev_name != nullptr)
+                    free(this->m_dev_name);
+            } catch(std::exception &e) {
+                throw CameraUVCException("~CameraUVC()", e.what());
+            }
+        }
+
+        bool CameraUVC::IsOpened() {
+            return m_isOpened;
         }
 
         void CameraUVC::StartCapture() {
@@ -292,6 +305,8 @@ namespace opensbv {
                     }
                     break;
             }
+
+            m_isOpened = true;
 
             return true;
         }
@@ -591,6 +606,8 @@ namespace opensbv {
             }
 
             this->m_fd = -1;
+
+            m_isOpened = false;
 
         }
 

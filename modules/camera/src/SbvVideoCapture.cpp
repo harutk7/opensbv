@@ -10,52 +10,72 @@ namespace opensbv {
         SbvVideoCapture::SbvVideoCapture(string camera, unsigned short width, unsigned short height,
                          opensbv::camera::capture_format format) : CameraUVC((char *)camera.c_str(), width, height), mWidth(width), mHeight(height), m_cap_format(format) {
 
-            // set capture method on CameraUVC
-            SetCaptureFormat(m_cap_format);
+            try {
+                // set capture method on CameraUVC
+                SetCaptureFormat(m_cap_format);
 
-            this->m_frame = cv::Mat(mHeight, mWidth, CV_8UC3);
+                this->m_frame = cv::Mat(mHeight, mWidth, CV_8UC3);
 
-            this->m_frame_yuyv = cv::Mat(mHeight, mWidth, CV_8UC2);
+                this->m_frame_yuyv = cv::Mat(mHeight, mWidth, CV_8UC2);
+            } catch (std::exception& e) {
+                throw SbvVideoCaptureException("SbvVideoCapture()", e.what());
+            }
         }
 
         SbvVideoCapture::~SbvVideoCapture() {
-
+            try {
+                StopCapture();
+            } catch (std::exception& e) {
+                throw SbvVideoCaptureException("~SbvVideoCapture()", e.what());
+            }
         }
 
         void SbvVideoCapture::open() {
-
-            mWorkerThread = boost::thread(&SbvVideoCapture::runWorker, this);
+            try {
+                mWorkerThread = boost::thread(&SbvVideoCapture::runWorker, this);
+            } catch (std::exception& e) {
+                throw SbvVideoCaptureException("open()", e.what());
+            }
         }
 
         void SbvVideoCapture::close() {
-
-            mWorkerThread.interrupt();
-            mWorkerThread.join();
+            try {
+                mWorkerThread.interrupt();
+                mWorkerThread.join();
+            } catch (std::exception& e) {
+                throw SbvVideoCaptureException("close()", e.what());
+            }
         }
 
         void SbvVideoCapture::runWorker(opensbv::camera::SbvVideoCapture *cap) {
             try {
                 cap->StartCapture(); // open camera from Camera class with main loop
-
             } catch(CameraUVCException &e) {
-                e.log();
-                exit(1);
+                throw SbvVideoCaptureException("runWorker()", e.what());
             }
         }
 
         bool SbvVideoCapture::isOpened() {
-            return true;
+            try {
+                return IsOpened();
+            } catch (std::exception& e) {
+                throw SbvVideoCaptureException("isOpened()", e.what());
+            }
         }
 
         cv::Mat SbvVideoCapture::readMat() {
-            mTx.lock();
-            cv::Mat frame;
-            if (mRead) {
-                m_frame.copyTo(frame);
-                mRead = false;
+            try {
+                mTx.lock();
+                cv::Mat frame;
+                if (mRead) {
+                    m_frame.copyTo(frame);
+                    mRead = false;
+                }
+                mTx.unlock();
+                return frame;
+            } catch (cv::Exception& e) {
+                throw SbvVideoCaptureException("readMat()", e.what());
             }
-            mTx.unlock();
-            return frame;
         }
 
         void SbvVideoCapture::OnFrameReady(const void *p, unsigned long size) {
@@ -103,7 +123,10 @@ namespace opensbv {
 
             } catch(Exception &e) {
                 mTx.unlock();
-                std::cerr << "error in StartCapture" << e.what() << std::endl;
+                throw SbvVideoCaptureException("OnFrameReady()", e.what());
+            } catch(std::exception &e) {
+                mTx.unlock();
+                throw SbvVideoCaptureException("OnFrameReady()", e.what());
             }
         }
     }

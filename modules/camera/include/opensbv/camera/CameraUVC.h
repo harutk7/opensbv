@@ -70,10 +70,10 @@ namespace opensbv {
             CameraUVC *m_inst; /// pointer to CameraUVC
         };
 
-/// UVC Camera class
-/**
-  Camera class for capturing frame
-*/
+        /// UVC Camera class
+        /**
+          Camera class for capturing frame
+        */
         class CameraUVC {
 
         protected:
@@ -103,6 +103,12 @@ namespace opensbv {
              */
             void SetCaptureFormat(enum capture_format cap_fromat);
 
+            /**
+             * Is Opened
+             * @return
+             */
+            bool IsOpened();
+
         public:
             /**
              * Camera UVC constructor
@@ -111,10 +117,11 @@ namespace opensbv {
              * @param width
              */
             CameraUVC(char device[20], unsigned short height, unsigned short width);
-            ~CameraUVC(); ///< Destructor
+            virtual ~CameraUVC(); ///< Destructor
 
 
         private:
+            bool m_isOpened; ///< Is Opened
             char *m_dev_name; ///< Device to open
             buffer  *m_buffers; ///< Capture frame buffer
             enum io_method  m_io; ///< Input out method

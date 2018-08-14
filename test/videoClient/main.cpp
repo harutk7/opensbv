@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
     Capture cap(CAPTURE_MRTP, port);
     cap.setHost(host);
-    cap.setPort(8526);
+    cap.setPort(8554);
     if(!cap.connect())
         return 0;
     cap.run();
@@ -42,7 +42,6 @@ int main(int argc, char* argv[]) {
             cv::waitKey(1);
 
         } catch(StreamerException &e) {
-
         }
     }
 
