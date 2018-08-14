@@ -28,7 +28,7 @@ set(GENERAL_TEST_FILES
 set(SERIAL_TEST_FILES
         serial/main.cpp)
 
-add_executable(opensbv_test ${VIDEO_CLIENT_TEST_FILES})
+add_executable(opensbv_test ${VIDEO_TEST_FILES})
 
 
 add_dependencies(opensbv_streamer opensbv_camera opensbv_helpers_general opensbv_helpers_image opensbv_streamer )

@@ -39,6 +39,7 @@ namespace opensbv {
 
         void CameraUVC::StartCapture() {
             try {
+                m_isOpened = true;
                 m_numErrors = 0;
 
                 open_device();
