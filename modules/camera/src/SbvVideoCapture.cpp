@@ -17,6 +17,8 @@ namespace opensbv {
                 this->m_frame = cv::Mat(mHeight, mWidth, CV_8UC3);
 
                 this->m_frame_yuyv = cv::Mat(mHeight, mWidth, CV_8UC2);
+
+                mRead = false;
             } catch (std::exception& e) {
                 throw SbvVideoCaptureException("SbvVideoCapture()", e.what());
             }

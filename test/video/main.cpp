@@ -31,12 +31,16 @@ int main(int argc, char* argv[]) {
     mStreamer.setStreamer(&mMRtpStreamer);
 
     mStreamer.run();
+//    cv::FileStorage opencv_file("frame_bgr.xml", cv::FileStorage::WRITE);
 
     while(cap.isOpened()) {
         cv::Mat frame = cap.readMat();
 
         if (frame.empty() || frame.data == nullptr)
             continue;
+
+//        opencv_file << "my_matrix" << frame;
+//        opencv_file.release();
 
         try {
             mMRtpStreamer.Write(frame.data, frame.total() * frame.elemSize());
