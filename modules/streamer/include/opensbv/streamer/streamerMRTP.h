@@ -44,7 +44,7 @@ namespace opensbv {
 
             std::list<std::vector<unsigned char>> mList;
 
-            const size_t mChunkSize = 63000;
+            const size_t mChunkSize = 60000;
 
         public:
             ChunkSplitter();
