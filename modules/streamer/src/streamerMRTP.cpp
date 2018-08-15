@@ -206,6 +206,7 @@ namespace opensbv {
 
                 mChunkSplitter.split(mLocalBuffer.getData(), mLocalBuffer.getLength(), mLocalBuffer.getTimestamp());
 
+                std::cout << mLocalBuffer.getLength() << std::endl;
                 size_t full_size = 0;
 
                 while (mChunkSplitter.hasNext()) {
