@@ -206,7 +206,6 @@ namespace opensbv {
 
                 mChunkSplitter.split(mLocalBuffer.getData(), mLocalBuffer.getLength(), mLocalBuffer.getTimestamp());
 
-                std::cout << mLocalBuffer.getLength() << std::endl;
                 size_t full_size = 0;
 
                 while (mChunkSplitter.hasNext()) {
@@ -253,12 +252,10 @@ namespace opensbv {
 
         void ChunkSplitter::split(unsigned char *buf, size_t n, long long int timeStamp) {
 
-            mList.clear();
-
             size_t startPos = 0;
             size_t endPos = 0;
 
-            size_t maxCount = n / 60000 + 1;
+            size_t maxCount = n / mChunkSize + 1;
 
             std::string prefix = "-+-" + std::to_string(n) + "-" + std::to_string(maxCount) + "-";
 

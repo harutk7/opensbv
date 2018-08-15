@@ -2,6 +2,7 @@
 // Created by harut on 7/23/18.
 //
 
+#include <algorithm>
 #include "opensbv/streamer/captureMRTP.h"
 
 namespace opensbv {
@@ -78,6 +79,8 @@ namespace opensbv {
 
         void ChunkCombiner::add(char *buf, size_t n) {
 
+            m_remList.clear();
+
             std::string bufStr(buf + (n - 30), buf + n);
 
             std::size_t found = bufStr.find("-+-");
@@ -92,19 +95,54 @@ namespace opensbv {
                     int curChunk = std::stoi(infos[2]);
                     long long int timestamp = std::stoul(infos[3]);
 
-                    if (timestamp != mTimestamp) {
-                        mData.clear();
-                        mLength = 0;
-                        mMaxChunk = maxChunk;
-                        mCurChunk = curChunk;
-                        mTimestamp = timestamp;
-                    } else {
-                        mCurChunk = curChunk;
+                    if (curChunk == 1) {
+                        m_units.emplace_back(ChunkUnit(maxChunk, timestamp));
+
+                    }
+                    for (int i = 0; i <m_units.size() ; i++) {
+
+                        if(m_units[i].m_timestamp == timestamp) {
+                            m_units[i].m_curchunk++;
+                            m_units[i].fill(buf, (n - (str2.length() + 3)));
+                        }
+
                     }
 
-                    mLength += (n - (str2.length() + 3));
-                    std::copy(buf + 0, buf + (n - (str2.length() + 3)), std::back_inserter(mData));
-                    mReady = mLength == length;
+                    for (int i = 0; i <m_units.size() ; ++i) {
+                        if(m_units[i].m_curchunk == m_units[i].m_maxchunk && m_units[i].m_timestamp>= mTimestamp) {
+                            mTimestamp = m_units[i].m_timestamp;
+                            mReady = true;
+                            mData = std::vector<unsigned char> (m_units[i].m_data);
+                        }
+
+                        if (timestamp - m_units[i].m_timestamp > 1000) {
+                            m_remList.emplace_back(i);
+                        }
+                    }
+
+                    for (int i = 0; i <m_units.size() ; ++i) {
+
+                        if(m_units[i].m_curchunk == m_units[i].m_maxchunk && m_units[i].m_timestamp>= mTimestamp) {
+                            mTimestamp = m_units[i].m_timestamp;
+                            mReady = true;
+                            mData = std::vector<unsigned char> (m_units[i].m_data);
+                        }
+                    }
+                    for(int item : m_remList) {
+                        m_units.erase(m_units.begin() + item);
+                    }
+
+//                    vec.erase(vec.begin() + 1);
+//                        m_units(std::remove_if(m_list.begin(), m_list.end(), [](const KCFObject & o) {
+////            cv::Mat1b mask1;
+////            inRange(hsv, cv::Scalar(255, 255, 255), cv::Scalar(255, 255, 255), mask1);
+//                            bool lost = o.m_status == OBJ_STATUS_LOST;
+//                            bool is_inside = (o.m_box & cv::Rect2d(0, 0, 1280, 720)) == o.m_box;
+//                            return !is_inside || lost;
+//                        }), m_units.end());
+//                    mLength += (n - (str2.length() + 3));
+//                    std::copy(buf + 0, buf + (n - (str2.length() + 3)), std::back_inserter(mData));
+//                    mReady = mLength == length;
                 }
             }
 

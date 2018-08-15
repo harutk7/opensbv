@@ -25,6 +25,25 @@ using namespace std::chrono;
 namespace opensbv {
     namespace streamer {
 
+        /// Chunk unit class
+        class ChunkUnit {
+        public:
+            long long int m_timestamp;
+            int m_maxchunk = 0;
+            int m_curchunk = 0;
+            std::vector<unsigned char> m_data;
+
+            ChunkUnit(int maxchunk, long long int timestamp) {
+                m_maxchunk = maxchunk;
+                m_timestamp = timestamp;
+            }
+
+            void fill(char *data, unsigned long length) {
+                std::copy(data + 0, data + length, std::back_inserter(m_data));
+            }
+        };
+
+
         /// Client chunk combiner
         class ChunkCombiner {
             std::vector<unsigned char> mData; ///< vector of data
@@ -34,6 +53,9 @@ namespace opensbv {
             long long int mTimestamp = 0; ///< current timestamp
 
             bool mReady = false; ///< is full package combined or not
+
+            std::vector<int> m_remList; ///< remove list;
+            std::vector<ChunkUnit> m_units;
 
         public:
             /**
@@ -83,6 +105,7 @@ namespace opensbv {
             size_t mLength; ///< length of package
             ChunkCombiner mCombiner; ///< ChunkCombiner class instance
             std::mutex mTx; ///< mutex for reading writing data
+
 
         public:
 

@@ -32,7 +32,6 @@ namespace opensbv {
                 }
                 else
                 {
-                    std::cout << n << std::endl;
                     mCapture->onRecv(data, n);
                 }
             }
