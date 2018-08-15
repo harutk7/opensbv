@@ -91,7 +91,6 @@ namespace opensbv {
                 if (m_cap_format == CAP_YUYV) {
                     memcpy( m_frame_yuyv.data, (char *)p, sizeof(unsigned char) * (mWidth * 2 * mHeight) );
                     cvtColor(m_frame_yuyv, this->m_frame, CV_YUV2BGR_YUYV);
-
                 }
                 else if (m_cap_format == CAP_MJPG) {
 
