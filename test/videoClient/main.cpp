@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
     std::string filename;
     filename = host + "_" + GeneralHelper::GetDateTime() + ".avi";
 
+    cv::VideoWriter video(filename, CV_FOURCC('M','J','P','G'), 24, cv::Size(1280, 720), true);
 
     int count = 1;
     while(cap.isOpened()) {
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
             if (frame.empty())
                 continue;
 
-//            video.write(frame);
+            video.write(frame);
 
             cv::imshow("frame", frame);
             cv::waitKey(1);

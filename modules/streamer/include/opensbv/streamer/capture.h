@@ -148,7 +148,7 @@ namespace opensbv {
              * Only captureMRTP supports frame timestamp right now
              * @return
              */
-            long long int getTimestamp();
+            uint32_t getTimestamp();
 
             /**
              * run udp server worker function

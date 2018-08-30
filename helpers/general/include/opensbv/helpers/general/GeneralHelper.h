@@ -13,6 +13,7 @@
 #include <exception>
 #include <iomanip>
 #include <ctime>
+#include <cstdint>
 
 using namespace std::chrono;
 
@@ -38,7 +39,7 @@ namespace opensbv {
                 static std::vector<std::string> explode(std::string const & s, char delim);
 
                 /// Get current timestamp
-                static long long int GetTimestamp();
+                static uint32_t GetTimestamp();
 
                 /// Get current datetime
                 static std::string GetDateTime();

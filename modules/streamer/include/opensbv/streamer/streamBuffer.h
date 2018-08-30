@@ -15,7 +15,7 @@ namespace opensbv {
         class StreamBuffer {
             unsigned char* mData = nullptr;
             size_t mLength = 0;
-            long long int mTimestamp = 0;
+            uint32_t mTimestamp = 0;
 
             mutable pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -25,9 +25,9 @@ namespace opensbv {
 
             ~StreamBuffer();
 
-            void assign(unsigned char* mData, size_t mLength, long long int mTimestamp);
+            void assign(unsigned char* mData, size_t mLength, uint32_t mTimestamp);
 
-            long long int getTimestamp();
+            uint32_t getTimestamp();
 
             StreamBuffer& operator=(const StreamBuffer& other)
             {
@@ -57,7 +57,7 @@ namespace opensbv {
 
             unsigned char* getData();
 
-            long long int getLength();
+            uint32_t getLength();
         };
     }
 }

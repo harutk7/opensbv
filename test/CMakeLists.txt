@@ -31,7 +31,7 @@ set(SERIAL_TEST_FILES
 add_executable(opensbv_test ${VIDEO_CLIENT_TEST_FILES})
 
 
-add_dependencies(opensbv_streamer opensbv_camera opensbv_helpers_general opensbv_helpers_image opensbv_streamer )
+add_dependencies(opensbv_test opensbv_helpers_general opensbv_helpers_image opensbv_camera opensbv_streamer)
 
 SET(JPEG_TURBO_LIB libturbojpeg.so)
 

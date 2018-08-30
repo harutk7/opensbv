@@ -16,7 +16,7 @@ namespace opensbv {
             delete mData;
         }
 
-        void StreamBuffer::assign(unsigned char *Data, size_t Length, long long int Timestamp) {
+        void StreamBuffer::assign(unsigned char *Data, size_t Length, uint32_t Timestamp) {
 
             pthread_mutex_lock(&mutex);
 
@@ -31,7 +31,7 @@ namespace opensbv {
             pthread_mutex_unlock(&mutex);
         }
 
-        long long int StreamBuffer::getTimestamp() {
+        uint32_t StreamBuffer::getTimestamp() {
             return mTimestamp;
         }
 
@@ -39,7 +39,7 @@ namespace opensbv {
             return mData;
         }
 
-        long long int StreamBuffer::getLength() {
+        uint32_t StreamBuffer::getLength() {
             return mLength;
         }
     }

@@ -192,7 +192,7 @@ namespace opensbv {
             udp::resolver resolver(io_service);
             udp::endpoint endpoint = *resolver.resolve({udp::v4(), m_address, std::to_string(m_port)});
 
-            long long int prevTimestamp = 0;
+            uint32_t prevTimestamp = 0;
 
             while(true) {
                 boost::this_thread::interruption_point();
@@ -250,7 +250,7 @@ namespace opensbv {
             mList.remove(mList.front());
         }
 
-        void ChunkSplitter::split(unsigned char *buf, size_t n, long long int timeStamp) {
+        void ChunkSplitter::split(unsigned char *buf, size_t n, uint32_t timeStamp) {
 
             size_t startPos = 0;
             size_t endPos = 0;
