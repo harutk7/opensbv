@@ -18,6 +18,7 @@ using boost::asio::ip::udp;
 
 namespace opensbv {
     namespace streamer {
+
         class client
         {
         public:

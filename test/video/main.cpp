@@ -18,7 +18,10 @@ using namespace opensbv::streamer;
 
 int main(int argc, char* argv[]) {
 
-    SbvVideoCapture cap("/dev/video0", FRAME_WIDTH, FRAME_HEIGHT, CAP_YUYV);
+    if (argc < 2)
+        return 1;
+
+    SbvVideoCapture cap(argv[1], FRAME_WIDTH, FRAME_HEIGHT, CAP_YUYV);
 
     cap.open();
 

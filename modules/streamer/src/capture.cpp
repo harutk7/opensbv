@@ -97,7 +97,8 @@ namespace opensbv {
         }
 
         void Capture::run() {
-            m_udpServer = boost::thread(&Capture::runUdpServer, mUdpPort, mCapture, &mOpened);
+            // Switch from tcp to udp and vv
+            m_server = boost::thread(&Capture::runTcpServer, mUdpPort, mCapture, &mOpened);
 
             std::string cmd = getRunCmd();
             size_t request_length = cmd.length();
@@ -107,8 +108,8 @@ namespace opensbv {
         }
 
         void Capture::stop() {
-            m_udpServer.interrupt();
-            m_udpServer.join();
+            m_server.interrupt();
+            m_server.join();
             mOpened = false;
 
             std::cout << "streamer disconnected " << mHost << ":" << mPort << std::endl;
@@ -153,6 +154,21 @@ namespace opensbv {
         void Capture::runUdpServer(unsigned short port, opensbv::streamer::AbstractCapture *capture, bool *opened) {
             try {
                 UdpServer s(capture, "0.0.0.0", port);
+
+                s.run();
+
+            } catch(boost::thread_interrupted const&e) {
+                int b = 2;
+            } catch(std::exception &e){
+                int a = 1;
+            }
+            *opened = false;
+        }
+
+
+        void Capture::runTcpServer(unsigned short port, opensbv::streamer::AbstractCapture *capture, bool *opened) {
+            try {
+                TcpServer s(capture, "0.0.0.0", port);
 
                 s.run();
 

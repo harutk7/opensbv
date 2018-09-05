@@ -23,6 +23,7 @@ namespace opensbv {
             if (mLength != 0) {
                 delete mData;
             }
+
             mData = new unsigned char[Length];
             std::copy(Data + 0, Data + Length, mData + 0);
             mLength = Length;

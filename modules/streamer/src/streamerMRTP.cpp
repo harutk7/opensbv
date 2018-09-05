@@ -132,8 +132,7 @@ namespace opensbv {
 
         void StreamerMRTP::streamWorker(StreamBuffer *buffer, streamMRTPParams params) {
             try {
-
-                UdpClient client(buffer, params.address, params.port);
+                TcpClient client(buffer, params.address, params.port);
                 client.run();
             } catch(boost::thread_interrupted const&) {
 
@@ -179,8 +178,11 @@ namespace opensbv {
             return m_action;
         }
 
-
-        UdpClient::UdpClient(StreamBuffer *buffer, std::string address, unsigned short port): m_address(address), m_port(port) {
+        UdpClient::UdpClient(StreamBuffer *buffer, std::string address, unsigned short port) :
+                m_address(address),
+                m_port(port),
+                mChunkSplitter(60000)
+        {
             m_buffer = buffer;
         }
 
@@ -227,65 +229,6 @@ namespace opensbv {
 
         UdpClient::~UdpClient() {
 
-        }
-
-
-        ChunkSplitter::ChunkSplitter() {
-
-        }
-
-        ChunkSplitter::~ChunkSplitter() {
-
-        }
-
-        bool ChunkSplitter::hasNext() {
-            return !mList.empty();
-        }
-
-        std::vector<unsigned char> ChunkSplitter::getNext() {
-            return mList.front();
-        }
-
-        void ChunkSplitter::deleteNext() {
-            mList.remove(mList.front());
-        }
-
-        void ChunkSplitter::split(unsigned char *buf, size_t n, uint32_t timeStamp) {
-
-            size_t startPos = 0;
-            size_t endPos = 0;
-
-            size_t maxCount = n / mChunkSize + 1;
-
-            std::string prefix = "-+-" + std::to_string(n) + "-" + std::to_string(maxCount) + "-";
-
-            int currentCount = 0;
-            std::string currentPrefix;
-
-            while(true) {
-                if (n > endPos) {
-
-                    currentCount++;
-                    currentPrefix = prefix + std::to_string(currentCount) + "-" + std::to_string(timeStamp) + "-";
-
-                    startPos = endPos;
-
-                    if (n - endPos > mChunkSize) {
-                        endPos +=mChunkSize;
-                    } else {
-                        endPos = n;
-                    }
-
-                    std::vector<unsigned char> currentChunk;
-                    currentChunk.assign(buf + startPos,  buf + endPos);
-
-                    std::copy(currentPrefix.c_str() + 0, currentPrefix.c_str() + currentPrefix.length(), std::back_inserter(currentChunk));
-
-                    mList.emplace_back(currentChunk);
-                } else {
-                    break;
-                }
-            }
         }
 
     }

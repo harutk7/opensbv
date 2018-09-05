@@ -7,6 +7,7 @@
 
 #include <string>
 #include "opensbv/streamer/captureMRTP.h"
+#include "opensbv/streamer/tcpServer.h"
 
 
 #include <cstdlib>
@@ -55,7 +56,7 @@ namespace opensbv {
             tcp::socket *m_s;
             boost::asio::io_service io_service; ///< io service
 
-            boost::thread m_udpServer;
+            boost::thread m_server;
 
             CaptureType mType; ///< type
 
@@ -156,6 +157,15 @@ namespace opensbv {
              * @param capture
              */
             static void runUdpServer(unsigned short port, AbstractCapture* capture, bool *opened);
+
+            /**
+             * run tcp server worker function
+             * @param port
+             * @param capture
+             */
+            static void runTcpServer(unsigned short port, AbstractCapture* capture, bool *opened);
+
+
 
         };
     }

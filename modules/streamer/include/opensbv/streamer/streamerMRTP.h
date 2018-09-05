@@ -21,6 +21,10 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
+#include "opensbv/streamer/chunkSplitter.h"
+#include "opensbv/streamer/tcpClient.h"
+
+
 #define STREAM_FPS (5000)
 
 using boost::asio::ip::udp;
@@ -40,24 +44,6 @@ namespace opensbv {
             }
         };
 
-        class ChunkSplitter {
-
-            std::list<std::vector<unsigned char>> mList;
-
-            const size_t mChunkSize = 60000;
-
-        public:
-            ChunkSplitter();
-            ~ChunkSplitter();
-
-            void split(unsigned char *buf, size_t n, uint32_t timeStamp);
-
-            bool hasNext();
-
-            std::vector<unsigned char> getNext();
-
-            void deleteNext();
-        };
 
         /// mrtspStreamParams
         struct streamMRTPParams {
