@@ -7,7 +7,6 @@
 
 #include <string>
 #include "opensbv/streamer/captureMRTP.h"
-#include "opensbv/streamer/tcpServer.h"
 
 
 #include <cstdlib>
@@ -149,7 +148,7 @@ namespace opensbv {
              * Only captureMRTP supports frame timestamp right now
              * @return
              */
-            uint32_t getTimestamp();
+            long long int getTimestamp();
 
             /**
              * run udp server worker function

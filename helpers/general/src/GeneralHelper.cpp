@@ -37,7 +37,7 @@ namespace opensbv {
                 return result;
             }
 
-            uint32_t GeneralHelper::GetTimestamp() {
+            long long int GeneralHelper::GetTimestamp() {
                 boost::posix_time::ptime time_t_epoch(date(1970,1,1));
                 boost::posix_time::ptime now = microsec_clock::local_time();
                 boost::posix_time::time_duration diff = now - time_t_epoch;

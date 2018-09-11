@@ -22,7 +22,7 @@ namespace opensbv {
             ChunkSplitter(size_t chunkSize);
             ~ChunkSplitter();
 
-            void split(unsigned char *buf, size_t n, uint32_t timeStamp);
+            void split(unsigned char *buf, size_t n, long long int timeStamp);
 
             bool hasNext();
 

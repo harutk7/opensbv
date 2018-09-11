@@ -132,7 +132,7 @@ namespace opensbv {
 
         void StreamerMRTP::streamWorker(StreamBuffer *buffer, streamMRTPParams params) {
             try {
-                TcpClient client(buffer, params.address, params.port);
+                UdpClient client(buffer, params.address, params.port);
                 client.run();
             } catch(boost::thread_interrupted const&) {
 
@@ -194,7 +194,7 @@ namespace opensbv {
             udp::resolver resolver(io_service);
             udp::endpoint endpoint = *resolver.resolve({udp::v4(), m_address, std::to_string(m_port)});
 
-            uint32_t prevTimestamp = 0;
+            long long int prevTimestamp = 0;
 
             while(true) {
                 boost::this_thread::interruption_point();

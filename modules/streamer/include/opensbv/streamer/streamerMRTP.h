@@ -22,7 +22,6 @@
 #include <boost/property_tree/json_parser.hpp>
 
 #include "opensbv/streamer/chunkSplitter.h"
-#include "opensbv/streamer/tcpClient.h"
 
 
 #define STREAM_FPS (5000)

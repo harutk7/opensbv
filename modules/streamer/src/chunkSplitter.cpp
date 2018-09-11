@@ -29,7 +29,7 @@ namespace opensbv {
             mList.remove(mList.front());
         }
 
-        void ChunkSplitter::split(unsigned char *buf, size_t n, uint32_t timeStamp) {
+        void ChunkSplitter::split(unsigned char *buf, size_t n, long long int timeStamp) {
 
             size_t startPos = 0;
             size_t endPos = 0;

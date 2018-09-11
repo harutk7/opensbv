@@ -29,7 +29,7 @@ namespace opensbv {
 
         }
 
-        uint32_t Capture::getTimestamp() {
+        long long int Capture::getTimestamp() {
             if (mCapture != nullptr) {
                 mCapture->getTimestamp();
             }
@@ -98,7 +98,7 @@ namespace opensbv {
 
         void Capture::run() {
             // Switch from tcp to udp and vv
-            m_server = boost::thread(&Capture::runTcpServer, mUdpPort, mCapture, &mOpened);
+            m_server = boost::thread(&Capture::runUdpServer, mUdpPort, mCapture, &mOpened);
 
             std::string cmd = getRunCmd();
             size_t request_length = cmd.length();
@@ -168,9 +168,7 @@ namespace opensbv {
 
         void Capture::runTcpServer(unsigned short port, opensbv::streamer::AbstractCapture *capture, bool *opened) {
             try {
-                TcpServer s(capture, "0.0.0.0", port);
 
-                s.run();
 
             } catch(boost::thread_interrupted const&e) {
                 int b = 2;

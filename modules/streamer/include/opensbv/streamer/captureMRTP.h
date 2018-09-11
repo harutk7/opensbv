@@ -28,12 +28,12 @@ namespace opensbv {
         /// Chunk unit class
         class ChunkUnit {
         public:
-            uint32_t m_timestamp;
+            long long int m_timestamp;
             int m_maxchunk = 0;
             int m_curchunk = 0;
             std::vector<unsigned char> m_data;
 
-            ChunkUnit(int maxchunk, uint32_t timestamp) {
+            ChunkUnit(int maxchunk, long long int timestamp) {
                 m_maxchunk = maxchunk;
                 m_timestamp = timestamp;
             }
@@ -50,7 +50,7 @@ namespace opensbv {
             size_t mLength = 0; ///< Length of buffer
             int mMaxChunk = 0; ///< max chunks
             int mCurChunk = 0; ///< current chunk
-            uint32_t mTimestamp = 0; ///< current timestamp
+            long long int mTimestamp = 0; ///< current timestamp
 
             bool mReady = false; ///< is full package combined or not
 
@@ -84,7 +84,7 @@ namespace opensbv {
              * get timestamp of frame
              * @return
              */
-            uint32_t getTimestmap();
+            long long int getTimestmap();
 
             /**
              * get next package
@@ -133,7 +133,7 @@ namespace opensbv {
              * get current timestamp of frame
              * @return
              */
-            uint32_t getTimestamp();
+            long long int getTimestamp();
 
             /**
              * get data

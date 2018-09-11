@@ -21,7 +21,7 @@ namespace opensbv {
          */
         class SerialRW {
         public:
-            SerialRW(char *read, char *write, uint32_t baundRate); ///< Constructor
+            SerialRW(char *read, char *write, long long int baundRate); ///< Constructor
             ~SerialRW(); ///< Destructor
 
             /// Write data to serial
@@ -31,13 +31,13 @@ namespace opensbv {
             string Read(size_t size);
 
             /// Set bound rate
-            void SetBoundRate(uint32_t rate);
+            void SetBoundRate(long long int rate);
 
         private:
             char* read; ///< Read fd
             char * write; ///< Write fd
             Serial *m_serial; ///< Serial lib pointer
-            uint32_t m_baundRate; ///< Baudrate
+            long long int m_baundRate; ///< Baudrate
 
         };
 

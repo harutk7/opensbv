@@ -38,7 +38,7 @@ namespace opensbv {
             return vec;
         }
 
-        uint32_t CaptureMRTP::getTimestamp() {
+        long long int CaptureMRTP::getTimestamp() {
             return mCombiner.getTimestmap();
         }
 
@@ -73,7 +73,7 @@ namespace opensbv {
 
         }
 
-        uint32_t ChunkCombiner::getTimestmap() {
+        long long int ChunkCombiner::getTimestmap() {
             return mTimestamp;
         }
 
@@ -93,7 +93,7 @@ namespace opensbv {
                     size_t length = std::stoi(infos[0]);
                     int maxChunk = std::stoi(infos[1]);
                     int curChunk = std::stoi(infos[2]);
-                    uint32_t timestamp = std::stoul(infos[3]);
+                    long long int timestamp = std::stoul(infos[3]);
 
                     if (curChunk == 1) {
                         m_units.emplace_back(ChunkUnit(maxChunk, timestamp));

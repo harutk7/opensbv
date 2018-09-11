@@ -7,7 +7,7 @@
 namespace opensbv {
     namespace serial {
 
-        SerialRW::SerialRW(char *read, char *write, uint32_t baundRate) {
+        SerialRW::SerialRW(char *read, char *write, long long int baundRate) {
             m_baundRate = baundRate; // set m_baundRate
 
             this->read = read; // read
@@ -42,7 +42,7 @@ namespace opensbv {
             return "";
         }
 
-        void SerialRW::SetBoundRate(uint32_t rate) {
+        void SerialRW::SetBoundRate(long long int rate) {
             this->m_baundRate = rate;
         }
     }
