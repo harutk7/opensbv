@@ -132,8 +132,57 @@ namespace opensbv {
 
         void StreamerMRTP::streamWorker(StreamBuffer *buffer, streamMRTPParams params) {
             try {
-                UdpClient client(buffer, params.address, params.port);
-                client.run();
+                // udp part
+                //UdpClient client(buffer, params.address, params.port);
+                //client.run();
+
+                size_t chunkSize = 4096;
+
+                TcpClient client(params.address, params.port);
+                if (client.Connect() < 0)
+                    return;
+
+                long long int prevTimestamp = 0;
+                StreamBuffer localBuffer;
+
+                char buf[chunkSize];
+
+                while(true) {
+                    size_t size = 0;
+                    size_t cur = 0;
+
+                    boost::this_thread::interruption_point();
+
+                    if (buffer->getTimestamp() == prevTimestamp)
+                        continue;
+                    else
+                        prevTimestamp = buffer->getTimestamp();
+
+                    localBuffer = *buffer;
+
+                    std::string timestampString = std::to_string(localBuffer.getTimestamp());
+                    size = client.send((const unsigned char *)timestampString.c_str(), timestampString.size());
+                    if (size < 0)
+                        return;
+
+                    bzero(buf,chunkSize);
+                    while(true) {
+                        size_t diff = localBuffer.getLength() - cur <= chunkSize ? localBuffer.getLength() - cur : chunkSize;
+
+                        std::copy(localBuffer.getData() + cur, localBuffer.getData() + cur + diff, buf + 0);
+                        size = client.send((const unsigned char*)buf,diff);
+                        if (size < 0)
+                            return;
+                        cur += diff;
+
+                        if (cur == localBuffer.getLength())
+                            break;
+
+                        bzero(buf,chunkSize);
+                    }
+
+                    usleep(STREAM_FPS);
+                }
             } catch(boost::thread_interrupted const&) {
 
             } catch(...){

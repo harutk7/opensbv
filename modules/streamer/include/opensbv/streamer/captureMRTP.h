@@ -103,9 +103,8 @@ namespace opensbv {
 
             unsigned char *mData; ///< data of current package
             size_t mLength; ///< length of package
-            ChunkCombiner mCombiner; ///< ChunkCombiner class instance
             std::mutex mTx; ///< mutex for reading writing data
-
+            long long int mTimestamp; ///< timestamp
 
         public:
 
@@ -127,7 +126,7 @@ namespace opensbv {
             /*
              * data receive from udp server
              */
-            void onRecv(char *buf, size_t n);
+            void onRecv(char *buf, size_t n, long long int timestamp);
 
             /**
              * get current timestamp of frame

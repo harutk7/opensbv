@@ -20,7 +20,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "opensbv/streamer/udpServer.h"
+#include "opensbv/streamer/tcpServer.h"
 #include "opensbv/helpers/general/GeneralHelper.h"
 
 using boost::asio::ip::tcp;
@@ -51,7 +51,7 @@ namespace opensbv {
         class Capture {
 
             std::string mHost; ///< hostname
-            ushort mPort, mUdpPort; ///< port
+            ushort mPort, mStreamPort; ///< port
             tcp::socket *m_s;
             boost::asio::io_service io_service; ///< io service
 
@@ -155,15 +155,7 @@ namespace opensbv {
              * @param port
              * @param capture
              */
-            static void runUdpServer(unsigned short port, AbstractCapture* capture, bool *opened);
-
-            /**
-             * run tcp server worker function
-             * @param port
-             * @param capture
-             */
-            static void runTcpServer(unsigned short port, AbstractCapture* capture, bool *opened);
-
+            static void runServer(unsigned short port, AbstractCapture* capture, bool *opened);
 
 
         };

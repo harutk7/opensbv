@@ -9,16 +9,16 @@ namespace opensbv {
 
         Capture::Capture(opensbv::streamer::CaptureType type): mOpened(false) {
             mType = type;
-            mUdpPort = 2341;
+            mStreamPort = 2341;
 
             if (mType == CAPTURE_MRTP) {
                 mCapture = new CaptureMRTP();
             }
         }
 
-        Capture::Capture(opensbv::streamer::CaptureType type, unsigned short udpPort) {
+        Capture::Capture(opensbv::streamer::CaptureType type, unsigned short port) {
             mType = type;
-            mUdpPort = udpPort;
+            mStreamPort = port;
 
             if (mType == CAPTURE_MRTP) {
                 mCapture = new CaptureMRTP();
@@ -98,7 +98,7 @@ namespace opensbv {
 
         void Capture::run() {
             // Switch from tcp to udp and vv
-            m_server = boost::thread(&Capture::runUdpServer, mUdpPort, mCapture, &mOpened);
+            m_server = boost::thread(&Capture::runServer, mStreamPort, mCapture, &mOpened);
 
             std::string cmd = getRunCmd();
             size_t request_length = cmd.length();
@@ -123,7 +123,7 @@ namespace opensbv {
             boost::property_tree::ptree root;
             std::stringstream ss;
             root.put("action", "play");
-            root.put("port", mUdpPort);
+            root.put("port", mStreamPort);
             boost::property_tree::write_json(ss, root);
             return ss.str();
         }
@@ -151,24 +151,44 @@ namespace opensbv {
                 return cv::Mat();
         }
 
-        void Capture::runUdpServer(unsigned short port, opensbv::streamer::AbstractCapture *capture, bool *opened) {
+        void Capture::runServer(unsigned short port, opensbv::streamer::AbstractCapture *capture, bool *opened) {
             try {
-                UdpServer s(capture, "0.0.0.0", port);
+                TcpServer server(port);
 
-                s.run();
+                if (server.run() < 0)
+                    return;
 
-            } catch(boost::thread_interrupted const&e) {
-                int b = 2;
-            } catch(std::exception &e){
-                int a = 1;
-            }
-            *opened = false;
-        }
+                size_t bufferSize = 4096;
+                size_t size;
 
+                char buffer[bufferSize];
+                char imageBuffer[4461819];
+                bzero(buffer,bufferSize);
 
-        void Capture::runTcpServer(unsigned short port, opensbv::streamer::AbstractCapture *capture, bool *opened) {
-            try {
+                long long int timestamp = 0;
+                size_t fullSize = 0;
 
+                while(true) {
+                    size = server.recv(buffer, bufferSize);
+
+                    if (size < 0) {
+                        return;
+                    }
+                    if (size == 0)
+                        continue;
+
+                    if (size <= 15) {
+                        if (fullSize != 0)
+                            capture->onRecv(imageBuffer, fullSize, timestamp);
+                        timestamp = atoll(buffer);
+                        fullSize = 0;
+                    } else {
+                        std::copy(buffer + 0, buffer + size, imageBuffer + fullSize);
+                        fullSize += size;
+                    }
+
+                    bzero(buffer,bufferSize);
+                }
 
             } catch(boost::thread_interrupted const&e) {
                 int b = 2;

@@ -19,7 +19,7 @@ namespace opensbv {
              * @param buf
              * @param n
              */
-            virtual void onRecv(char *buf, size_t n) = 0;
+            virtual void onRecv(char *buf, size_t n, long long int timestamp) = 0;
 
             /**
              * get data of frame

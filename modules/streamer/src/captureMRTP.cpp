@@ -9,19 +9,22 @@ namespace opensbv {
     namespace streamer {
 
         // MAIN CLASS
-        CaptureMRTP::CaptureMRTP(): mCombiner(), mLength(0), mData(nullptr) {
+        CaptureMRTP::CaptureMRTP(): mLength(0), mData(nullptr) {
         }
 
         CaptureMRTP::~CaptureMRTP() {
             delete mData;
         }
 
-        void CaptureMRTP::onRecv(char *buf, size_t n) {
+        void CaptureMRTP::onRecv(char *buf, size_t n, long long int timestamp) {
 
-            mCombiner.add(buf, n);
-
-            if (mCombiner.isReady())
-                fill(mCombiner.getNext());
+            mTx.lock();
+            delete mData;
+            mLength = n;
+            mTimestamp = timestamp;
+            mData = new unsigned char[n];
+            std::copy(buf + 0, buf + n, mData + 0);
+            mTx.unlock();
         }
 
         std::vector<unsigned char> CaptureMRTP::getData() {
@@ -39,7 +42,7 @@ namespace opensbv {
         }
 
         long long int CaptureMRTP::getTimestamp() {
-            return mCombiner.getTimestmap();
+            return mTimestamp;
         }
 
         void CaptureMRTP::fill(std::vector<unsigned char> &vec) {
