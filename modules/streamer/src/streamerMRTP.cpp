@@ -161,7 +161,7 @@ namespace opensbv {
                     localBuffer = *buffer;
 
                     std::string timestampString = std::to_string(localBuffer.getTimestamp());
-                    size = client.send((const unsigned char *)timestampString.c_str(), timestampString.size());
+                    size = client.send(timestampString.c_str(), timestampString.size());
                     if (size < 0)
                         return;
 
@@ -170,7 +170,7 @@ namespace opensbv {
                         size_t diff = localBuffer.getLength() - cur <= chunkSize ? localBuffer.getLength() - cur : chunkSize;
 
                         std::copy(localBuffer.getData() + cur, localBuffer.getData() + cur + diff, buf + 0);
-                        size = client.send((const unsigned char*)buf,diff);
+                        size = client.send(buf,diff);
                         if (size < 0)
                             return;
                         cur += diff;

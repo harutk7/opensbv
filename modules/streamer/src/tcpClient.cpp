@@ -32,7 +32,7 @@ namespace opensbv {
             return 0;
         }
 
-        size_t TcpClient::send(const unsigned char *buf, size_t size) {
+        size_t TcpClient::send(const char *buf, size_t size) {
             return write(sockfd,buf+0,size);
         }
     }

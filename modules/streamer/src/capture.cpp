@@ -155,8 +155,9 @@ namespace opensbv {
             try {
                 TcpServer server(port);
 
-                if (server.run() < 0)
-                    return;
+                int run = server.run();
+                if (run < 0)
+                    exit(1);
 
                 size_t bufferSize = 4096;
                 size_t size;

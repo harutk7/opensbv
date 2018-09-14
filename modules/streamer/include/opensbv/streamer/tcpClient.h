@@ -46,7 +46,7 @@ namespace opensbv {
              * @param size
              * @return
              */
-            size_t send(const unsigned char* buf, size_t size);
+            size_t send(const char* buf, size_t size);
         };
     }
 }

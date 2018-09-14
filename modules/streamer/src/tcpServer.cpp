@@ -19,12 +19,12 @@ namespace opensbv {
             serv_addr.sin_family = AF_INET;
             serv_addr.sin_addr.s_addr = INADDR_ANY;
             serv_addr.sin_port = htons(portno);
-            if (bind(sockfd, (struct sockaddr *) &serv_addr,
-                     sizeof(serv_addr)) < 0)
-                return -1;
             int enable = 1;
             if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
                 return 1;
+            if (bind(sockfd, (struct sockaddr *) &serv_addr,
+                     sizeof(serv_addr)) < 0)
+                return -1;
             listen(sockfd,5);
             clilen = sizeof(cli_addr);
             newsockfd = accept(sockfd,
